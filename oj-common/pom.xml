@@ -9,29 +9,16 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>oj-modules</artifactId>
+    <artifactId>oj-common</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>oj-system</module>
-        <module>oj-friend</module>
-        <module>oj-judge</module>
-        <module>oj-job</module>
+        <module>oj-common-core</module>
+        <module>oj-common-swagger</module>
     </modules>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
     </properties>
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.bite</groupId>
-            <artifactId>oj-common-core</artifactId>
-            <version>${oj-common-core.version}</version>
-        </dependency>
-    </dependencies>
 
 </project>
