@@ -6,6 +6,7 @@ import com.bite.common.core.enums.ResultCode;
 import com.bite.system.domain.SysUser;
 import com.bite.system.mapper.SysUserMapper;
 import com.bite.system.service.ISysUserService;
+import com.bite.system.utils.BCryptUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,19 +21,12 @@ public class SysUserServiceImpl implements ISysUserService {
         LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
         SysUser sysUser = sysUserMapper.selectOne(queryWrapper.select(SysUser::getPassword)
                 .eq(SysUser::getUserAccount, userAccount));
-
-        R loginR = new R<>();
         if (sysUser == null) {
-            loginR.setCode(ResultCode.FAILED_USER_NOT_EXISTS.getCode());
-            loginR.setMsg(ResultCode.FAILED_USER_NOT_EXISTS.getMsg());
+            return R.fail(ResultCode.FAILED_USER_NOT_EXISTS);
         }
-        if (!sysUser.getPassword().equals(password)) {
-            loginR.setCode(ResultCode.FAILED_LOGIN.getCode());
-            loginR.setMsg(ResultCode.FAILED_LOGIN.getMsg());
+        if (!BCryptUtils.matchesPassword(password, sysUser.getPassword())) {
+            return R.fail(ResultCode.FAILED_LOGIN);
         }
-
-        loginR.setCode(ResultCode.SUCCESS.getCode());
-        loginR.setMsg(ResultCode.SUCCESS.getMsg());
-        return loginR;
+        return R.ok();
     }
 }

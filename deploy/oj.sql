@@ -19,3 +19,6 @@ create table tb_sys_user(
     primary key (user_id),
     unique key uk_user_account(user_account)
 );
+
+-- 加密算法引入后，密码字段改为char(60)
+alter table tb_sys_user modify column password char(60);
