@@ -13,6 +13,8 @@ public class TestController {
     @Autowired
     private RedisService redisService;
 
+
+
     @RequestMapping("/redis")
     public String testRedis() {
         redisService.setCacheObject("testString", "String");

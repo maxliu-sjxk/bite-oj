@@ -1,4 +1,4 @@
-package com.bite.common.security;
+package com.bite.common.security.handler;
 
 import com.bite.common.core.domain.R;
 import com.bite.common.core.enums.ResultCode;

@@ -32,6 +32,9 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <oj-common-redis.version>1.0-SNAPSHOT</oj-common-redis.version>
         <springdoc-openapi.version>2.2.0</springdoc-openapi.version>
         <fastjson.version>2.0.43</fastjson.version>
+        <jjwt.version>0.9.1</jjwt.version>
+        <jaxb-api.version>2.4.0-b180830.0359</jaxb-api.version>
+        <hutool-all.version>5.8.22</hutool-all.version>
     </properties>
     <dependencies>
         <!-- bootstrap启动器 -->
