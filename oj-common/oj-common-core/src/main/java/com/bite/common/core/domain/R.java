@@ -40,6 +40,18 @@ public class R<T> {
         return assembleResult(null, resultCode);
     }
 
+    public static <T> R<T> fail(int code, String msg) {
+        return assembleResult(code, msg, null);
+    }
+
+    private static <T> R<T> assembleResult(int code, String msg, T data) {
+        R<T> r = new R<>();
+        r.setCode(code);
+        r.setMsg(msg);
+        r.setData(data);
+        return r;
+    }
+
     private static <T> R<T> assembleResult(T data, ResultCode resultCode) {
         R<T> r = new R<>();
         r.setCode(resultCode.getCode());
