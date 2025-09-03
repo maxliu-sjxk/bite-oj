@@ -1,4 +1,4 @@
-package com.bite.common.security.utils;
+package com.bite.common.core.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

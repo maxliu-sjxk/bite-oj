@@ -1,4 +1,4 @@
-package com.bite.common.security.domain;
+package com.bite.common.core.domain;
 
 import lombok.Getter;
 import lombok.Setter;

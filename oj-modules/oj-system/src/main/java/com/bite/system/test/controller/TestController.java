@@ -1,5 +1,6 @@
 package com.bite.system.test.controller;
 
+import com.bite.common.core.domain.R;
 import com.bite.common.redis.service.RedisService;
 import com.bite.system.domain.SysUser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,4 +33,12 @@ public class TestController {
         System.out.println();
         return "test";
     }
+
+
+    @RequestMapping("/test1")
+    public R<?> test1() {
+        return R.ok();
+    }
+
+
 }

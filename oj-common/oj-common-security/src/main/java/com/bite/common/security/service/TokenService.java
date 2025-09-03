@@ -5,8 +5,8 @@ import com.bite.common.core.constants.CacheConstants;
 import com.bite.common.core.constants.JwtConstants;
 import com.bite.common.core.enums.UserIdentity;
 import com.bite.common.redis.service.RedisService;
-import com.bite.common.security.domain.LoginUser;
-import com.bite.common.security.utils.JwtUtils;
+import com.bite.common.core.domain.LoginUser;
+import com.bite.common.core.utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
