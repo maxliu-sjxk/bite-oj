@@ -1,7 +1,6 @@
 package com.bite.system.controller;
 
 import com.bite.common.core.domain.R;
-import com.bite.common.core.enums.ResultCode;
 import com.bite.system.domain.LoginDTO;
 import com.bite.system.domain.SysUserSaveDTO;
 import com.bite.system.domain.SysUserVO;

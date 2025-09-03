@@ -76,12 +76,12 @@ public class AuthFilter implements GlobalFilter, Ordered {
             return unauthorizedResponse(exchange, "令牌验证失败！");
         }
         //解析载荷信息(userId、uuid)，根据uuid拼接key并检查缓存是否存在，检查是否存在userId，即信息是否完整
-        String userKey = getUserKey(claims);
+        String userKey = JwtUtils.getUserKey(claims);
         boolean isOverdue = redisService.hasKey(getTokenKey(userKey));
         if (!isOverdue) {
             return unauthorizedResponse(exchange, "登录状态已过期！");
         }
-        String userId = getUserId(claims);
+        String userId = JwtUtils.getUserId(claims);
         if (StrUtil.isEmpty(userId)) {
             return unauthorizedResponse(exchange, "令牌验证失败！");
         }
@@ -177,31 +177,6 @@ public class AuthFilter implements GlobalFilter, Ordered {
             token = token.replaceFirst(HttpConstants.PREFIX, StrUtil.EMPTY);
         }
         return token;
-    }
-
-    /**
-     * 获取用户Id
-     * @param claims
-     * @return
-     */
-    private String getUserId(Claims claims) {
-        return getString(claims.get(JwtConstants.LOGIN_USER_ID));
-    }
-
-    private String getString(Object value) {
-        if (value == null) {
-            return "";
-        }
-        return value.toString();
-    }
-
-    /**
-     * 获取userKey
-     * @param claims
-     * @return
-     */
-    private String getUserKey(Claims claims) {
-        return getString(claims.get(JwtConstants.LOGIN_USER_KEY));
     }
 
     @Override

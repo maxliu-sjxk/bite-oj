@@ -1,5 +1,6 @@
 package com.bite.common.core.utils;
 
+import com.bite.common.core.constants.JwtConstants;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -28,5 +29,30 @@ public class JwtUtils {
      */
     public static Claims parseToken(String token, String secret) {
         return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+    }
+
+    /**
+     * 获取用户Id
+     * @param claims
+     * @return
+     */
+    public static String getUserId(Claims claims) {
+        return getString(claims.get(JwtConstants.LOGIN_USER_ID));
+    }
+
+    private static String getString(Object value) {
+        if (value == null) {
+            return "";
+        }
+        return value.toString();
+    }
+
+    /**
+     * 获取userKey
+     * @param claims
+     * @return
+     */
+    public static String getUserKey(Claims claims) {
+        return getString(claims.get(JwtConstants.LOGIN_USER_KEY));
     }
 }
