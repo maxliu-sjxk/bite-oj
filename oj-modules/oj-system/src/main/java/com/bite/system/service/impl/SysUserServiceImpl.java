@@ -1,11 +1,14 @@
 package com.bite.system.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bite.common.core.domain.R;
 import com.bite.common.core.enums.ResultCode;
 import com.bite.common.core.enums.UserIdentity;
+import com.bite.common.security.exception.ServiceException;
 import com.bite.common.security.service.TokenService;
 import com.bite.system.domain.SysUser;
+import com.bite.system.domain.dto.SysUserSaveDTO;
 import com.bite.system.mapper.SysUserMapper;
 import com.bite.system.service.ISysUserService;
 import com.bite.system.utils.BCryptUtils;
@@ -13,6 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
+
+
+import java.util.List;
 
 @RefreshScope
 @Service
@@ -41,5 +47,24 @@ public class SysUserServiceImpl implements ISysUserService {
         //登陆成功
         String token = tokenService.createTokenAndCache(sysUser.getUserId(), secret, UserIdentity.ADMIN);
         return R.ok(token);
+    }
+
+    @Override
+    public int add(SysUserSaveDTO sysUserSaveDTO) {
+        //检验账号是否已存在
+        List<SysUser> sysUserList = sysUserMapper.selectList(new LambdaQueryWrapper<SysUser>()
+                .eq(SysUser::getUserAccount, sysUserSaveDTO.getUserAccount()));
+        if (CollectionUtil.isNotEmpty(sysUserList)) {
+            throw new ServiceException(ResultCode.AILED_USER_EXISTS);
+        }
+        //数据转换以入库
+        SysUser sysUser = new SysUser();
+        sysUser.setUserAccount(sysUserSaveDTO.getUserAccount());
+        sysUser.setPassword(BCryptUtils.encryptPassword(sysUserSaveDTO.getPassword()));
+        //这部分由MyBatis-Plus自动填充
+//        sysUser.setCreateBy(100L);
+//        sysUser.setCreateTime(LocalDateTime.now());
+        //mapper结果直接返回，由controller继承下来的toR方法进行结果处理
+        return sysUserMapper.insert(sysUser);
     }
 }

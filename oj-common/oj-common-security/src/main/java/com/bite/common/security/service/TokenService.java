@@ -9,7 +9,6 @@ import com.bite.common.redis.service.RedisService;
 import com.bite.common.core.domain.LoginUser;
 import com.bite.common.core.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwt;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

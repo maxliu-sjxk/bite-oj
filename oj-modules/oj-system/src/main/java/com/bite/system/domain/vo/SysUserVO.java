@@ -1,4 +1,4 @@
-package com.bite.system.domain;
+package com.bite.system.domain.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
@@ -6,11 +6,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class LoginDTO {
-
+public class SysUserVO {
     @Schema(description = "管理员账号")
     private String userAccount;
 
-    @Schema(description = "管理员密码")
-    private String password;
+    @Schema(description = "管理员昵称")
+    private String nickName;
 }

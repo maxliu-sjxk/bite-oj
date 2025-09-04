@@ -1,9 +1,10 @@
 package com.bite.system.controller;
 
+import com.bite.common.core.controller.BaseController;
 import com.bite.common.core.domain.R;
-import com.bite.system.domain.LoginDTO;
-import com.bite.system.domain.SysUserSaveDTO;
-import com.bite.system.domain.SysUserVO;
+import com.bite.system.domain.dto.LoginDTO;
+import com.bite.system.domain.dto.SysUserSaveDTO;
+import com.bite.system.domain.vo.SysUserVO;
 import com.bite.system.service.ISysUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "管理员用户API")
 @RestController
 @RequestMapping("/sysUser")
-public class SysUserController {
+public class SysUserController extends BaseController {
 
     @Resource(name = "sysUserServiceImpl")
     private ISysUserService sysUserService;
@@ -38,7 +39,7 @@ public class SysUserController {
     @ApiResponse(responseCode = "3101", description = "用户已存在")
     @PostMapping("/add")
     public R<Void> add(@RequestBody SysUserSaveDTO sysUserSaveDTO) {
-        return null;
+        return toR(sysUserService.add(sysUserSaveDTO));
     }
 
     @Operation(summary = "删除管理员", description = "根据用户ID删除管理员")
