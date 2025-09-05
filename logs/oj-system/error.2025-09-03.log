@@ -1,2 +1,0 @@
-14:48:29.560 [http-nio-9201-exec-1] ERROR c.b.c.s.h.GlobalExceptionHandler - [handleHttpRequestMethodNotSupportedException,25] - 请求地址'/sysUser/login', 不支持'GET'请求
-14:50:18.772 [http-nio-9201-exec-3] ERROR c.b.c.s.h.GlobalExceptionHandler - [handleHttpRequestMethodNotSupportedException,25] - 请求地址'/sysUser/login', 不支持'GET'请求

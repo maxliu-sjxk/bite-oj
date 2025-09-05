@@ -57,14 +57,12 @@ public class SysUserServiceImpl implements ISysUserService {
         if (CollectionUtil.isNotEmpty(sysUserList)) {
             throw new ServiceException(ResultCode.AILED_USER_EXISTS);
         }
-        //数据转换以入库
+        //数据转换
         SysUser sysUser = new SysUser();
         sysUser.setUserAccount(sysUserSaveDTO.getUserAccount());
         sysUser.setPassword(BCryptUtils.encryptPassword(sysUserSaveDTO.getPassword()));
-        //这部分由MyBatis-Plus自动填充
-//        sysUser.setCreateBy(100L);
-//        sysUser.setCreateTime(LocalDateTime.now());
-        //mapper结果直接返回，由controller继承下来的toR方法进行结果处理
+        //createBy、createTime、updateBy、updateTime字段由MyBatis-Plus自动填充
+        //插入数据库，mapper结果直接返回，由controller继承下来的toR方法进行结果处理
         return sysUserMapper.insert(sysUser);
     }
 }
