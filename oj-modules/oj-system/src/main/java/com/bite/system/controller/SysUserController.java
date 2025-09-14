@@ -1,9 +1,11 @@
 package com.bite.system.controller;
 
+import com.bite.common.core.constants.HttpConstants;
 import com.bite.common.core.controller.BaseController;
 import com.bite.common.core.domain.R;
 import com.bite.system.domain.dto.LoginDTO;
 import com.bite.system.domain.dto.SysUserSaveDTO;
+import com.bite.system.domain.vo.LoginUserVO;
 import com.bite.system.domain.vo.SysUserVO;
 import com.bite.system.service.ISysUserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,6 +15,8 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
+import jakarta.validation.Valid;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "管理员用户API")
@@ -40,6 +44,11 @@ public class SysUserController extends BaseController {
     @PostMapping("/add")
     public R<Void> add(@RequestBody SysUserSaveDTO sysUserSaveDTO) {
         return toR(sysUserService.add(sysUserSaveDTO));
+    }
+
+    @GetMapping("/info")
+    public R<LoginUserVO> info(@RequestHeader(HttpConstants.AUTHENTICATION) String token) {
+        return sysUserService.info(token);
     }
 
     @Operation(summary = "删除管理员", description = "根据用户ID删除管理员")

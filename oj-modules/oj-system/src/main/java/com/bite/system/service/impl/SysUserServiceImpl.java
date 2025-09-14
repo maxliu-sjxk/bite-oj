@@ -2,6 +2,7 @@ package com.bite.system.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.bite.common.core.domain.LoginUser;
 import com.bite.common.core.domain.R;
 import com.bite.common.core.enums.ResultCode;
 import com.bite.common.core.enums.UserIdentity;
@@ -9,6 +10,7 @@ import com.bite.common.security.exception.ServiceException;
 import com.bite.common.security.service.TokenService;
 import com.bite.system.domain.SysUser;
 import com.bite.system.domain.dto.SysUserSaveDTO;
+import com.bite.system.domain.vo.LoginUserVO;
 import com.bite.system.mapper.SysUserMapper;
 import com.bite.system.service.ISysUserService;
 import com.bite.system.utils.BCryptUtils;
@@ -36,7 +38,8 @@ public class SysUserServiceImpl implements ISysUserService {
     @Override
     public R<String> login(String userAccount, String password) {
         LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
-        SysUser sysUser = sysUserMapper.selectOne(queryWrapper.select(SysUser::getUserId, SysUser::getPassword)
+        SysUser sysUser = sysUserMapper.selectOne(queryWrapper
+                .select(SysUser::getUserId, SysUser::getPassword, SysUser::getNickName)
                 .eq(SysUser::getUserAccount, userAccount));
         if (sysUser == null) {
             return R.fail(ResultCode.FAILED_USER_NOT_EXISTS);
@@ -45,7 +48,8 @@ public class SysUserServiceImpl implements ISysUserService {
             return R.fail(ResultCode.FAILED_LOGIN);
         }
         //登陆成功
-        String token = tokenService.createTokenAndCache(sysUser.getUserId(), secret, UserIdentity.ADMIN);
+        String token = tokenService.createTokenAndCache(sysUser.getUserId(),
+                secret, UserIdentity.ADMIN, sysUser.getNickName());
         return R.ok(token);
     }
 
@@ -64,5 +68,17 @@ public class SysUserServiceImpl implements ISysUserService {
         //createBy、createTime、updateBy、updateTime字段由MyBatis-Plus自动填充
         //插入数据库，mapper结果直接返回，由controller继承下来的toR方法进行结果处理
         return sysUserMapper.insert(sysUser);
+    }
+
+    @Override
+    public R<LoginUserVO> info(String token) {
+        //获取用户昵称
+        LoginUser loginUser = tokenService.getLoginUser(token, secret);
+        if (loginUser == null) {
+            return R.fail();
+        }
+        LoginUserVO loginUserVO = new LoginUserVO();
+        loginUserVO.setNickName(loginUser.getNickName());
+        return R.ok(loginUserVO);
     }
 }

@@ -25,7 +25,16 @@ public class TokenService {
     private RedisService redisService;
 
 
-    public String createTokenAndCache(Long userId, String secret, UserIdentity identity) {
+    /**
+     * 创建token并缓存到Redis
+     * 初次用于用户登录接口
+     * @param userId
+     * @param secret
+     * @param identity
+     * @param nickName
+     * @return
+     */
+    public String createTokenAndCache(Long userId, String secret, UserIdentity identity, String nickName) {
         //生成UUID
         String userKey = UUID.fastUUID().toString();
 
@@ -33,20 +42,34 @@ public class TokenService {
         String token = createToken(userId, secret, userKey);
 
         //缓存
-        cacheLoginUser(userKey, identity);
+        cacheLoginUser(userKey, identity, nickName);
 
         return token;
     }
 
-    private void cacheLoginUser(String userKey, UserIdentity identity) {
+    /**
+     * 缓存登录用户信息
+     * @param userKey
+     * @param identity
+     * @param nickName
+     */
+    private void cacheLoginUser(String userKey, UserIdentity identity, String nickName) {
         //key-> jwt:token:uuid
         //value<string>-> LoginUser{ identity:int , …… }
         String key = CacheConstants.LOGIN_TOKEN_KEY_PREFIX + userKey;
         LoginUser loginUser = new LoginUser();
         loginUser.setIdentity(identity.getValue());
+        loginUser.setNickName(nickName);
         redisService.setCacheObject(key, loginUser, CacheConstants.EXP, TimeUnit.MINUTES);
     }
 
+    /**
+     * 创建token
+     * @param userId
+     * @param secret
+     * @param userKey
+     * @return
+     */
     private String createToken(Long userId, String secret, String userKey) {
         //载荷存储：唯一标识（userId + UUID）
         //考虑到：后续查看jwt是否过期是通过查询缓存中是否存在jwt:token的key，因此验证逻辑时需要拼接出key，用到uuid
@@ -64,27 +87,60 @@ public class TokenService {
      * @param secret
      */
     public void extendExpire(String token, String secret) {
-        //解析token获取载荷
-        Claims claims;
-        try {
-            claims = JwtUtils.parseToken(token, secret);
-            if (claims == null) {
-                log.error("token解析失败: {}", token);
-                return;
-            }
-        } catch (Exception e) {
-            log.error("token解析失败: {}, 异常", token, e);
+        String userKey = getUserKey(token, secret);
+        if (userKey == null) {
             return;
         }
-        //解析载荷获取userKey
-        String userKey = JwtUtils.getUserKey(claims);
         //判断剩余时间是否满足延长阈值
         if (!StrUtil.isEmpty(userKey) && redisService.getExpire(getTokenKey(userKey), TimeUnit.MINUTES) < CacheConstants.REFRESH_TIME) {
             redisService.expire(getTokenKey(userKey), CacheConstants.EXP, TimeUnit.MINUTES);
         }
     }
 
+    /**
+     * 解析token获取userKey（uuid）
+     * @param token
+     * @param secret
+     * @return
+     */
+    public String getUserKey(String token, String secret) {
+        //解析token获取载荷
+        Claims claims;
+        try {
+            claims = JwtUtils.parseToken(token, secret);
+            if (claims == null) {
+                log.error("token解析失败: {}", token);
+                return null;
+            }
+        } catch (Exception e) {
+            log.error("token解析失败: {}, 异常", token, e);
+            return null;
+        }
+        //解析载荷获取userKey
+        return JwtUtils.getUserKey(claims);
+    }
+
+    /**
+     * 根据userKey拼接Redis中的key
+     * @param userKey
+     * @return
+     */
     private String getTokenKey(String userKey) {
         return CacheConstants.LOGIN_TOKEN_KEY_PREFIX + userKey;
+    }
+
+    /**
+     * 获取到Redis中存储的value
+     * 初次用于获取用户信息（昵称）
+     * @param token
+     * @param secret
+     * @return
+     */
+    public LoginUser getLoginUser(String token, String secret) {
+        String userKey = getUserKey(token, secret);
+        if (userKey == null) {
+            return null;
+        }
+        return redisService.getCacheObject(getTokenKey(userKey), LoginUser.class);
     }
 }

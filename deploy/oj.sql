@@ -22,3 +22,6 @@ create table tb_sys_user(
 
 -- 加密算法引入后，密码字段改为char(60)
 alter table tb_sys_user modify column password char(60);
+
+-- 实现后端获取用户信息（昵称）时，添加nick_name(60)字段
+alter table tb_sys_user add nick_name varchar(20) NULL AFTER user_account;

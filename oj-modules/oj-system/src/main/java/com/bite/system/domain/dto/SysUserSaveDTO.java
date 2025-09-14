@@ -1,12 +1,14 @@
 package com.bite.system.domain.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 public class SysUserSaveDTO {
+
 
     @Schema(description = "管理员账号")
     private String userAccount;
