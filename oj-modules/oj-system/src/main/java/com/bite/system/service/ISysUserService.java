@@ -7,7 +7,10 @@ import com.bite.system.domain.vo.LoginUserVO;
 public interface ISysUserService {
     R<String> login(String userAccount, String password);
 
-    int add(SysUserSaveDTO sysUserSaveDTO);
+    R<Void> logout(String token);
 
     R<LoginUserVO> info(String token);
+
+    int add(SysUserSaveDTO sysUserSaveDTO);
+
 }

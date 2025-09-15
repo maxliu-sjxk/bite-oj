@@ -98,7 +98,7 @@ public class TokenService {
     }
 
     /**
-     * 解析token获取userKey（uuid）
+     * 解析 token获取 userKey（uuid）
      * @param token
      * @param secret
      * @return
@@ -142,5 +142,13 @@ public class TokenService {
             return null;
         }
         return redisService.getCacheObject(getTokenKey(userKey), LoginUser.class);
+    }
+
+    public boolean deleteToken(String token, String secret) {
+        String userKey = getUserKey(token, secret);
+        if (userKey == null) {
+            return false;
+        }
+        return redisService.deleteObject(getTokenKey(userKey));
     }
 }

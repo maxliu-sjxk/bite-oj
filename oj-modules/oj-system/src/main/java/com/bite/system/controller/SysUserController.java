@@ -1,5 +1,6 @@
 package com.bite.system.controller;
 
+import com.alibaba.nacos.api.naming.pojo.healthcheck.impl.Http;
 import com.bite.common.core.constants.HttpConstants;
 import com.bite.common.core.controller.BaseController;
 import com.bite.common.core.domain.R;
@@ -35,6 +36,11 @@ public class SysUserController extends BaseController {
     @PostMapping("/login")
     public R<String> login(@RequestBody LoginDTO loginDTO) {
         return sysUserService.login(loginDTO.getUserAccount(), loginDTO.getPassword());
+    }
+
+    @DeleteMapping("/logout")
+    public R<Void> logout(@RequestHeader(HttpConstants.AUTHENTICATION) String token) {
+        return sysUserService.logout(token);
     }
 
     @Operation(summary = "新增管理员", description = "根据提供的信息新增管理员")

@@ -1,11 +1,14 @@
 package com.bite.system.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.bite.common.core.constants.HttpConstants;
 import com.bite.common.core.domain.LoginUser;
 import com.bite.common.core.domain.R;
 import com.bite.common.core.enums.ResultCode;
 import com.bite.common.core.enums.UserIdentity;
+import com.bite.common.redis.service.RedisService;
 import com.bite.common.security.exception.ServiceException;
 import com.bite.common.security.service.TokenService;
 import com.bite.system.domain.SysUser;
@@ -54,6 +57,33 @@ public class SysUserServiceImpl implements ISysUserService {
     }
 
     @Override
+    public R<Void> logout(String token) {
+        if (StrUtil.isNotEmpty(token) && token.startsWith(HttpConstants.PREFIX)) {
+            token = token.replaceFirst(HttpConstants.PREFIX, StrUtil.EMPTY);
+        }
+        if (!tokenService.deleteToken(token, secret)) {
+            return R.fail();
+        }
+        return R.ok();
+    }
+
+    @Override
+    public R<LoginUserVO> info(String token) {
+        //去除前缀
+        if (StrUtil.isNotEmpty(token) && token.startsWith(HttpConstants.PREFIX)) {
+            token = token.replaceFirst(HttpConstants.PREFIX, StrUtil.EMPTY);
+        }
+        //获取用户昵称
+        LoginUser loginUser = tokenService.getLoginUser(token, secret);
+        if (loginUser == null) {
+            return R.fail();
+        }
+        LoginUserVO loginUserVO = new LoginUserVO();
+        loginUserVO.setNickName(loginUser.getNickName());
+        return R.ok(loginUserVO);
+    }
+
+    @Override
     public int add(SysUserSaveDTO sysUserSaveDTO) {
         //检验账号是否已存在
         List<SysUser> sysUserList = sysUserMapper.selectList(new LambdaQueryWrapper<SysUser>()
@@ -70,15 +100,4 @@ public class SysUserServiceImpl implements ISysUserService {
         return sysUserMapper.insert(sysUser);
     }
 
-    @Override
-    public R<LoginUserVO> info(String token) {
-        //获取用户昵称
-        LoginUser loginUser = tokenService.getLoginUser(token, secret);
-        if (loginUser == null) {
-            return R.fail();
-        }
-        LoginUserVO loginUserVO = new LoginUserVO();
-        loginUserVO.setNickName(loginUser.getNickName());
-        return R.ok(loginUserVO);
-    }
 }
