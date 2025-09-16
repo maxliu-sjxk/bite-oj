@@ -2,7 +2,7 @@ package com.bite.system.test.controller;
 
 import com.bite.common.core.domain.R;
 import com.bite.common.redis.service.RedisService;
-import com.bite.system.domain.SysUser;
+import com.bite.system.domain.sysuser.SysUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
