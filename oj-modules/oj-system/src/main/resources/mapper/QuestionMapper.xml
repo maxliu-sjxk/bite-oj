@@ -6,17 +6,17 @@
 
     <select id="selectQuestionList" resultType="com.bite.system.domain.question.vo.QuestionVO">
         SELECT
-        tq.question_id,
-        tq.title,
-        tq.difficulty,
-        ts.nick_name as create_name,
-        tq.create_time
+            tq.question_id,
+            tq.title,
+            tq.difficulty,
+            ts.nick_name as create_name,
+            tq.create_time
         FROM
-        tb_question tq
-        left join
-        tb_sys_user ts
+            tb_question tq
+            left join
+            tb_sys_user ts
         on
-        tq.create_by = ts.user_id
+            tq.create_by = ts.user_id
         <where>
             <if test="difficulty !=null ">
                 AND difficulty = #{difficulty}
