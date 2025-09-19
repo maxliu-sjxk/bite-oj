@@ -1,6 +1,8 @@
 package com.bite.system.domain.question.vo;
 
 import com.bite.system.domain.question.dto.QuestionAddDTO;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,6 +10,7 @@ import lombok.Setter;
 @Setter
 public class QuestionDetailVO {
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long questionId;
 
     private String title;
