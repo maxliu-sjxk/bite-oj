@@ -20,7 +20,12 @@ public enum ResultCode {
     AILED_USER_EXISTS           (3101, "用户已存在"),
     FAILED_USER_NOT_EXISTS      (3102, "用户不存在"),
     FAILED_LOGIN                (3103, "账号或密码错误"),
-    FAILED_USER_BANNED          (3104, "您已被列入黑名单，请联系管理员");
+    FAILED_USER_BANNED          (3104, "您已被列入黑名单，请联系管理员"),
+
+    EXAM_START_TIME_TOO_EARLY   (3201, "竞赛开始时间不能早于当前时间"),
+    EXAM_START_TIME_TOO_LATE    (3202, "竞赛开始时间不能晚于结束时间"),
+    EXAM_QUESTION_NOT_EXISTS    (3203, "添加了不存在的题目");
+
 
     private int code;
     private String msg;
