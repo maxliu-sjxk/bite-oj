@@ -6,6 +6,7 @@ import com.bite.common.core.domain.TableDataInfo;
 import com.bite.system.domain.exam.dto.ExamAddDTO;
 import com.bite.system.domain.exam.dto.ExamQueryDTO;
 import com.bite.system.domain.exam.dto.ExamQuestionAddDTO;
+import com.bite.system.domain.exam.vo.ExamDetailVO;
 import com.bite.system.service.exam.IExamService;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
@@ -23,12 +24,17 @@ public class ExamController extends BaseController {
     }
 
     @PostMapping("/add")
-    public R<Void> add(@RequestBody ExamAddDTO examAddDTO) {
-        return toR(examService.add(examAddDTO));
+    public R<String> add(@RequestBody ExamAddDTO examAddDTO) {
+        return R.ok(examService.add(examAddDTO));
     }
 
     @PostMapping("/question/add")
     public R<Void> questionAdd(@RequestBody ExamQuestionAddDTO examQuestionAddDTO) {
         return toR(examService.questionAdd(examQuestionAddDTO));
+    }
+
+    @GetMapping("/detail")
+    public R<ExamDetailVO> detail(Long examId) {
+        return R.ok(examService.detail(examId));
     }
 }

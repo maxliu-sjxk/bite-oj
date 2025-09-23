@@ -11,8 +11,10 @@ import com.bite.system.domain.exam.ExamQuestion;
 import com.bite.system.domain.exam.dto.ExamAddDTO;
 import com.bite.system.domain.exam.dto.ExamQueryDTO;
 import com.bite.system.domain.exam.dto.ExamQuestionAddDTO;
+import com.bite.system.domain.exam.vo.ExamDetailVO;
 import com.bite.system.domain.exam.vo.ExamVO;
 import com.bite.system.domain.question.Question;
+import com.bite.system.domain.question.vo.QuestionVO;
 import com.bite.system.mapper.exam.ExamMapper;
 import com.bite.system.mapper.exam.ExamQuestionMapper;
 import com.bite.system.mapper.question.QuestionMapper;
@@ -46,7 +48,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper, ExamQuestio
     }
 
     @Override
-    public int add(ExamAddDTO examAddDTO) {
+    public String add(ExamAddDTO examAddDTO) {
         //竞赛标题不可重复
         List<Exam> exams = examMapper.selectList(new LambdaQueryWrapper<Exam>()
                 .eq(Exam::getTitle, examAddDTO.getTitle()));
@@ -63,7 +65,8 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper, ExamQuestio
         }
         Exam exam = new Exam();
         BeanUtil.copyProperties(examAddDTO, exam);
-        return examMapper.insert(exam);
+        examMapper.insert(exam);
+        return exam.getExamId().toString();
     }
 
     @Override
@@ -87,6 +90,35 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper, ExamQuestio
         return saveExamQuestion(exam, questions);
     }
 
+    @Override
+    public ExamDetailVO detail(Long examId) {
+        //1. 检查竞赛是否存在并在存在时返回竞赛的详细信息，之后将竞赛的基本信息封装VO对象中到
+        ExamDetailVO examDetailVO = new ExamDetailVO();
+        Exam exam = getExam(examId);
+        BeanUtil.copyProperties(exam, examDetailVO);
+        //查询竞赛下的题目
+        //考虑question_order，<可以无需查询该字段，确保结果集按照升序排序即可>
+        List<ExamQuestion> examQuestionList = examQuestionMapper.selectList(new LambdaQueryWrapper<ExamQuestion>()
+                .select(ExamQuestion::getQuestionId)
+                .eq(ExamQuestion::getExamId, exam.getExamId()).orderByAsc(ExamQuestion::getQuestionOrder));
+        //竞赛可能无题目（系统允许用户预创建只包含竞赛基本信息的竞赛），因此需要判断竞赛是否包含题目，如果没有题目直接返回，无需执行
+        //后续逻辑
+        if (CollectionUtil.isEmpty(examQuestionList)) {
+            return examDetailVO;
+        }
+        //将题目id转换为单独集合
+        List<Long> questionIdList = examQuestionList.stream().map(ExamQuestion::getQuestionId).toList();
+        //根据题目id批量查询出对应的题目的详细信息
+        //优化：只查询需要的字段
+        List<Question> questionList = questionMapper.selectList(new LambdaQueryWrapper<Question>()
+                .select(Question::getQuestionId, Question::getTitle, Question::getDifficulty)
+                .in(Question::getQuestionId, questionIdList));
+        //将questionList转换为VOList
+        List<QuestionVO> questionVOList = BeanUtil.copyToList(questionList, QuestionVO.class);
+        examDetailVO.setExamQuestionList(questionVOList);
+        return examDetailVO;
+    }
+
     private boolean saveExamQuestion(Exam exam, List<Question> questions) {
         List<ExamQuestion> examQuestionList = new ArrayList<>();
         int num = 1;
@@ -103,7 +135,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper, ExamQuestio
     private Exam getExam(Long examId) {
         Exam exam = examMapper.selectById(examId);
         if (exam == null) {
-            throw new ServiceException(ResultCode.FAILED_ALREADY_EXISTS);
+            throw new ServiceException(ResultCode.FAILED_NOT_EXISTS);
         }
         return exam;
     }
