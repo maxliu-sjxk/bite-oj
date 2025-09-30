@@ -1,6 +1,7 @@
 package com.bite.system.service.exam;
 
 import com.bite.system.domain.exam.dto.ExamAddDTO;
+import com.bite.system.domain.exam.dto.ExamEditDTO;
 import com.bite.system.domain.exam.dto.ExamQueryDTO;
 import com.bite.system.domain.exam.dto.ExamQuestionAddDTO;
 import com.bite.system.domain.exam.vo.ExamDetailVO;
@@ -16,4 +17,6 @@ public interface IExamService {
     boolean questionAdd(ExamQuestionAddDTO examQuestionAddDTO);
 
     ExamDetailVO detail(Long examId);
+
+    int edit(ExamEditDTO examEditDTO);
 }

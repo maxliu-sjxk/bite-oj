@@ -9,6 +9,7 @@ import com.bite.common.security.exception.ServiceException;
 import com.bite.system.domain.exam.Exam;
 import com.bite.system.domain.exam.ExamQuestion;
 import com.bite.system.domain.exam.dto.ExamAddDTO;
+import com.bite.system.domain.exam.dto.ExamEditDTO;
 import com.bite.system.domain.exam.dto.ExamQueryDTO;
 import com.bite.system.domain.exam.dto.ExamQuestionAddDTO;
 import com.bite.system.domain.exam.vo.ExamDetailVO;
@@ -49,24 +50,31 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper, ExamQuestio
 
     @Override
     public String add(ExamAddDTO examAddDTO) {
-        //竞赛标题不可重复
-        List<Exam> exams = examMapper.selectList(new LambdaQueryWrapper<Exam>()
-                .eq(Exam::getTitle, examAddDTO.getTitle()));
-        if (CollectionUtil.isNotEmpty(exams)) {
-            throw new ServiceException(ResultCode.FAILED_ALREADY_EXISTS);
-        }
-        //竞赛开始时间不能早于当前时间
-        if (examAddDTO.getStartTime().isBefore(LocalDateTime.now())) {
-            throw new ServiceException(ResultCode.EXAM_START_TIME_TOO_EARLY);
-        }
-        //竞赛开始时间不能晚于结束时间
-        if (examAddDTO.getStartTime().isAfter(examAddDTO.getEndTime())) {
-            throw new ServiceException(ResultCode.EXAM_START_TIME_TOO_LATE);
-        }
+        checkExamSaveInfo(examAddDTO, null);
         Exam exam = new Exam();
         BeanUtil.copyProperties(examAddDTO, exam);
         examMapper.insert(exam);
         return exam.getExamId().toString();
+    }
+
+    private void checkExamSaveInfo(ExamAddDTO examSaveDTO, Long examId) {
+        //竞赛标题不可重复
+        //添加
+        //编辑：用户可能只修改竞赛时间信息（竞赛标题已存在），此时需要排除竞赛标题已存在的情况，否则后续更新操作不会执行
+        List<Exam> exams = examMapper.selectList(new LambdaQueryWrapper<Exam>()
+                .eq(Exam::getTitle, examSaveDTO.getTitle())
+                .ne(examId != null, Exam::getExamId, examId));
+        if (CollectionUtil.isNotEmpty(exams)) {
+            throw new ServiceException(ResultCode.FAILED_ALREADY_EXISTS);
+        }
+        //竞赛开始时间不能早于当前时间
+        if (examSaveDTO.getStartTime().isBefore(LocalDateTime.now())) {
+            throw new ServiceException(ResultCode.EXAM_START_TIME_TOO_EARLY);
+        }
+        //竞赛开始时间不能晚于结束时间
+        if (examSaveDTO.getStartTime().isAfter(examSaveDTO.getEndTime())) {
+            throw new ServiceException(ResultCode.EXAM_START_TIME_TOO_LATE);
+        }
     }
 
     @Override
@@ -117,6 +125,18 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper, ExamQuestio
         List<QuestionVO> questionVOList = BeanUtil.copyToList(questionList, QuestionVO.class);
         examDetailVO.setExamQuestionList(questionVOList);
         return examDetailVO;
+    }
+
+    @Override
+    public int edit(ExamEditDTO examEditDTO) {
+        //验证竞赛是否存在
+        Exam exam = getExam(examEditDTO.getExamId());
+        //验证修改后的竞赛信息是否合法：1. 竞赛标题不能重复 2. 竞赛起始时间符合常理
+        checkExamSaveInfo(examEditDTO, examEditDTO.getExamId());
+        exam.setTitle(examEditDTO.getTitle());
+        exam.setStartTime(examEditDTO.getStartTime());
+        exam.setEndTime(examEditDTO.getEndTime());
+        return examMapper.updateById(exam);
     }
 
     private boolean saveExamQuestion(Exam exam, List<Question> questions) {
