@@ -2,7 +2,9 @@ package com.bite.system.service.question.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.bite.common.core.constants.Constants;
 import com.bite.common.core.domain.R;
 import com.bite.common.core.enums.ResultCode;
 import com.bite.common.security.exception.ServiceException;
@@ -18,7 +20,10 @@ import com.github.pagehelper.PageHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class QuestionServiceImpl implements IQuestionService {
@@ -28,6 +33,16 @@ public class QuestionServiceImpl implements IQuestionService {
 
     @Override
     public List<QuestionVO> list(QuestionQueryDTO questionQueryDTO) {
+        String excludeIdStr = questionQueryDTO.getExcludeIdStr();
+        //传入可选参数：excludeIdStr
+        if (StrUtil.isNotEmpty(excludeIdStr)) {
+            //分割拿到每个questionId，但仍是String类型
+            String[] excludeIds = excludeIdStr.split(Constants.SPLIT_SEM);
+            //转换为Long并赋值给questionQueryDTO，然后交由mapper层
+            Set<Long> excludeIdSet = Arrays.stream(excludeIds)
+                    .map(Long::valueOf).collect(Collectors.toSet());
+            questionQueryDTO.setExcludeIdSet(excludeIdSet);
+        }
         //自动分页
         PageHelper.startPage(questionQueryDTO.getPageNum(), questionQueryDTO.getPageSize());
         return questionMapper.selectQuestionList(questionQueryDTO);

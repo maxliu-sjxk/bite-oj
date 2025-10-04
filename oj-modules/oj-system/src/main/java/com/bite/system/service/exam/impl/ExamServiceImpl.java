@@ -81,7 +81,8 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper, ExamQuestio
     public boolean questionAdd(ExamQuestionAddDTO examQuestionAddDTO) {
         //1. 查看竞赛是否存在
         Exam exam = getExam(examQuestionAddDTO.getExamId());
-
+        //检查竞赛是否可编辑（即是否开赛）
+        checkExamStarted(exam);
         Set<Long> questionIdSet = examQuestionAddDTO.getQuestionIdSet();
         //用户没有添加任何新题目
         if (CollectionUtil.isEmpty(questionIdSet)) {
@@ -131,12 +132,31 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper, ExamQuestio
     public int edit(ExamEditDTO examEditDTO) {
         //验证竞赛是否存在
         Exam exam = getExam(examEditDTO.getExamId());
+        //检查竞赛是否可编辑（即是否开赛）
+        checkExamStarted(exam);
         //验证修改后的竞赛信息是否合法：1. 竞赛标题不能重复 2. 竞赛起始时间符合常理
         checkExamSaveInfo(examEditDTO, examEditDTO.getExamId());
         exam.setTitle(examEditDTO.getTitle());
         exam.setStartTime(examEditDTO.getStartTime());
         exam.setEndTime(examEditDTO.getEndTime());
         return examMapper.updateById(exam);
+    }
+
+    @Override
+    public int questionDelete(Long examId, Long questionId) {
+        //检查竞赛是否存在
+        Exam exam = getExam(examId);
+        //检查竞赛是否可编辑（即是否开赛）
+        checkExamStarted(exam);
+        return examQuestionMapper.delete(new LambdaQueryWrapper<ExamQuestion>()
+                .eq(ExamQuestion::getExamId, examId)
+                .eq(ExamQuestion::getQuestionId, questionId));
+    }
+
+    private void checkExamStarted(Exam exam) {
+        if (exam.getStartTime().isBefore(LocalDateTime.now())) {
+            throw new ServiceException(ResultCode.EXAM_ALREADY_STARTED);
+        }
     }
 
     private boolean saveExamQuestion(Exam exam, List<Question> questions) {

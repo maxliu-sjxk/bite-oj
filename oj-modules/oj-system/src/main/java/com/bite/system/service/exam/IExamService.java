@@ -19,4 +19,6 @@ public interface IExamService {
     ExamDetailVO detail(Long examId);
 
     int edit(ExamEditDTO examEditDTO);
+
+    int questionDelete(Long examId, Long questionId);
 }

@@ -43,4 +43,9 @@ public class ExamController extends BaseController {
     public R<Void> edit(@RequestBody ExamEditDTO examEditDTO) {
         return toR(examService.edit(examEditDTO));
     }
+
+    @DeleteMapping("/question/delete")
+    public R<Void> questionDelete(Long examId, Long questionId) {
+        return toR(examService.questionDelete(examId, questionId));
+    }
 }
