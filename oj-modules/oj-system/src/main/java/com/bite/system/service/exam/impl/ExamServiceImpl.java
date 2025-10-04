@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.bite.common.core.constants.Constants;
 import com.bite.common.core.enums.ResultCode;
 import com.bite.common.security.exception.ServiceException;
 import com.bite.system.domain.exam.Exam;
@@ -162,6 +163,27 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper, ExamQuestio
         examQuestionMapper.delete(new LambdaQueryWrapper<ExamQuestion>()
                 .eq(ExamQuestion::getExamId, examId));
         return examMapper.deleteById(examId);
+    }
+
+    @Override
+    public int publish(Long examId) {
+        Exam exam = getExam(examId);
+        //检查要发布的竞赛中是否包含题目
+        Long count = examQuestionMapper.selectCount(new LambdaQueryWrapper<ExamQuestion>()
+                .eq(ExamQuestion::getExamId, examId));
+        if (count == null || count <= 0) {
+            throw new ServiceException(ResultCode.EXAM_NOT_HAS_QUESTION);
+        }
+        exam.setStatus(Constants.TRUE);
+        return examMapper.updateById(exam);
+    }
+
+    @Override
+    public int cancelPublish(Long examId) {
+        Exam exam = getExam(examId);
+        checkExamStarted(exam);
+        exam.setStatus(Constants.FALSE);
+        return examMapper.updateById(exam);
     }
 
     private void checkExamStarted(Exam exam) {
