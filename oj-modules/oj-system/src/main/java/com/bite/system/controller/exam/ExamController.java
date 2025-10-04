@@ -48,4 +48,9 @@ public class ExamController extends BaseController {
     public R<Void> questionDelete(Long examId, Long questionId) {
         return toR(examService.questionDelete(examId, questionId));
     }
+
+    @DeleteMapping("/delete")
+    public R<Void> delete(Long examId) {
+        return toR(examService.delete(examId));
+    }
 }

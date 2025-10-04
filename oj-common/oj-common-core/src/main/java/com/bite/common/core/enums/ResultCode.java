@@ -25,7 +25,7 @@ public enum ResultCode {
     EXAM_START_TIME_TOO_EARLY   (3201, "竞赛开始时间不能早于当前时间"),
     EXAM_START_TIME_TOO_LATE    (3202, "竞赛开始时间不能晚于结束时间"),
     EXAM_QUESTION_NOT_EXISTS    (3203, "添加了不存在的题目"),
-    EXAM_ALREADY_STARTED        (3204, "竞赛已开始，不能编辑");
+    EXAM_ALREADY_STARTED        (3204, "竞赛已开始，不能执行任何操作");
 
 
     private int code;
