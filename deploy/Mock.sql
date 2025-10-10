@@ -57,3 +57,31 @@ VALUES (6, '竞赛006', '2025-09-20 19:11:05', '2025-10-24 18:11:08', 0, 1, '202
 INSERT INTO
 `tb_exam` (`exam_id`, `title`, `start_time`, `end_time`, `status`, `create_by`, `create_time`, `update_by`, `update_time`)
 VALUES (7, '竞赛007', '2025-09-20 20:11:05', '2025-10-25 18:11:08', 0, 1, '2025-09-12 17:11:27', NULL, NULL);
+
+-- tb_user
+
+INSERT INTO `tb_user` (`user_id`, `nick_name`, `head_image`, `sex`, `phone`, `code`, `email`, `wechat`, `school_name`, `major_name`, `introduce`, `status`, `create_by`, `create_time`, `update_by`, `update_time`) VALUES (100001, '张三', NULL, 1, '13253234214', NULL, 'zhangsan@qq.com', 'zhangsan13253234214', 'xxx大学', '软件工程', NULL, 1, 100001, '2025-10-10 08:20:05', NULL, NULL);
+
+INSERT INTO `tb_user` (`user_id`, `nick_name`, `head_image`, `sex`, `phone`, `code`, `email`, `wechat`, `school_name`, `major_name`, `introduce`, `status`, `create_by`, `create_time`, `update_by`, `update_time`) VALUES (100002, '李四', NULL, 2, '13233234214', NULL, 'lisi@qq.com', 'lisi13233234214', 'xxx大学', '汉语言文学', NULL, 1, 100001, '2025-10-09 08:20:05', NULL, NULL);
+
+INSERT INTO `tb_user` (`user_id`, `nick_name`, `head_image`, `sex`, `phone`, `code`, `email`, `wechat`, `school_name`, `major_name`, `introduce`, `status`, `create_by`, `create_time`, `update_by`, `update_time`) VALUES (100003, '王五', NULL, 1, '13253234255', NULL, 'wangwu@qq.com', 'wangwu13253234255', 'xxx大学', '计算机科学与技术', NULL, 0, 100001, '2025-10-08 08:20:05', NULL, NULL);
+
+-- 用户ID 100004
+INSERT INTO `tb_user` (`user_id`, `nick_name`, `head_image`, `sex`, `phone`, `code`, `email`, `wechat`, `school_name`, `major_name`, `introduce`, `status`, `create_by`, `create_time`, `update_by`, `update_time`)
+VALUES (100004, '赵六', NULL, 1, '13876543210', NULL, 'zhaoliu@qq.com', 'zhaoliu13876543210', 'yyy大学', '机械工程', NULL, 1, 100004, '2025-10-07 15:30:22', NULL, NULL);
+
+-- 用户ID 100005
+INSERT INTO `tb_user` (`user_id`, `nick_name`, `head_image`, `sex`, `phone`, `code`, `email`, `wechat`, `school_name`, `major_name`, `introduce`, `status`, `create_by`, `create_time`, `update_by`, `update_time`)
+VALUES (100005, '孙七', NULL, 2, '13987654321', NULL, 'sunqi@qq.com', 'sunqi13987654321', 'yyy大学', '会计学', NULL, 1, 100005, '2025-10-06 09:15:47', NULL, NULL);
+
+-- 用户ID 100006
+INSERT INTO `tb_user` (`user_id`, `nick_name`, `head_image`, `sex`, `phone`, `code`, `email`, `wechat`, `school_name`, `major_name`, `introduce`, `status`, `create_by`, `create_time`, `update_by`, `update_time`)
+VALUES (100006, '周八', NULL, 1, '13567890123', NULL, 'zhouba@qq.com', 'zhouba13567890123', 'zzz大学', '临床医学', NULL, 0, 100006, '2025-10-05 16:42:18', NULL, NULL);
+
+-- 用户ID 100007
+INSERT INTO `tb_user` (`user_id`, `nick_name`, `head_image`, `sex`, `phone`, `code`, `email`, `wechat`, `school_name`, `major_name`, `introduce`, `status`, `create_by`, `create_time`, `update_by`, `update_time`)
+VALUES (100007, '吴九', NULL, 2, '13654321098', NULL, 'wujiu@qq.com', 'wujiu13654321098', 'zzz大学', '教育学', NULL, 1, 100007, '2025-10-04 11:28:33', NULL, NULL);
+
+-- 用户ID 100008
+INSERT INTO `tb_user` (`user_id`, `nick_name`, `head_image`, `sex`, `phone`, `code`, `email`, `wechat`, `school_name`, `major_name`, `introduce`, `status`, `create_by`, `create_time`, `update_by`, `update_time`)
+VALUES (100008, '郑十', NULL, 1, '13789012345', NULL, 'zhengshi@qq.com', 'zhengshi13789012345', 'xxx大学', '金融学', NULL, 1, 100008, '2025-10-03 14:55:09', NULL, NULL);

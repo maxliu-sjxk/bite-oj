@@ -17,5 +17,6 @@ create table tb_question(
     create_time datetime not null comment '创建时间',
     update_by bigint unsigned comment '更新者',
     update_time datetime comment '更新时间',
+
     primary key (question_id)
 );
