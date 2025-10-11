@@ -47,6 +47,15 @@ public class GlobalExceptionHandler {
         return R.fail(resultCode);
     }
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public R<Void> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        String errorMsg = e.getBindingResult().getFieldErrors().stream()
+                .map(fieldError -> fieldError.getField() + " " + fieldError.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+        log.warn("参数校验失败: {}", errorMsg);
+        return R.fail(ResultCode.FAILED_PARAMS_VALIDATE.getCode(), errorMsg);
+    }
+
     //TODO 是否需要添加 ConstraintViolationException 异常处理器
 
     @ExceptionHandler(BindException.class)

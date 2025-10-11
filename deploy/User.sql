@@ -8,8 +8,9 @@ create table tb_user(
     nick_name varchar(20) comment '用户昵称',
     head_image varchar(100) comment '用户头像（具体存储路径）',
     sex tinyint comment '性别 1：男 2：女',
-    phone char(11) not null comment '手机号',
 
+
+    phone char(11) not null comment '手机号，如果采用邮箱登录，则删除not null',
     code char(6) comment '验证码，是否存在待定',
     email varchar(20) not null comment '邮箱，not null 因为计划邮箱登录',
 

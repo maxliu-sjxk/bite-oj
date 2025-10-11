@@ -33,6 +33,10 @@ public class TokenInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         //获取到token
         String token = getToken(request);
+
+        if (StrUtil.isEmpty(token)) {
+            return true;
+        }
         //调用延长方法
         tokenService.extendExpire(token, secret);
         return true;

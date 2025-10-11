@@ -1,5 +1,7 @@
 package com.bite.system.domain.user.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,6 +9,7 @@ import lombok.Setter;
 @Setter
 public class UserVO {
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long userId;
 
     private String nickName;
