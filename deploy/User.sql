@@ -10,8 +10,9 @@ create table tb_user(
     sex tinyint comment '性别 1：男 2：女',
 
 
-    phone char(11) not null comment '手机号，如果采用邮箱登录，则删除not null',
-    code char(6) comment '验证码，是否存在待定',
+--    phone char(11) not null comment '手机号，如果采用邮箱登录，则删除not null',
+    phone char(11) comment '手机号',
+--    code char(6) comment '验证码，是否存在待定',
     email varchar(20) not null comment '邮箱，not null 因为计划邮箱登录',
 
     wechat varchar(20) comment '微信号',

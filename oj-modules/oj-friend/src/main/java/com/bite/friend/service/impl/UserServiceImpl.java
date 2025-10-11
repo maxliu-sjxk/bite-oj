@@ -1,13 +1,20 @@
 package com.bite.friend.service.impl;
 
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bite.common.core.constants.CacheConstants;
 import com.bite.common.core.constants.Constants;
 import com.bite.common.core.enums.ResultCode;
+import com.bite.common.core.enums.UserIdentity;
+import com.bite.common.core.enums.UserStatus;
 import com.bite.common.message.service.Mail;
 import com.bite.common.redis.service.RedisService;
 import com.bite.common.security.exception.ServiceException;
+import com.bite.common.security.service.TokenService;
+import com.bite.friend.domain.User;
 import com.bite.friend.domain.dto.UserDTO;
+import com.bite.friend.mapper.UserMapper;
 import com.bite.friend.service.IUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,9 +36,20 @@ public class UserServiceImpl implements IUserService {
     @Autowired
     private RedisService redisService;
 
+    @Autowired
+    private UserMapper userMapper;
 
-    @Value("${captcha.send-limit}")
+    @Autowired
+    private TokenService tokenService;
+
+    @Value("${captcha.send-limit:3}")
     private Integer sendLimit;
+
+    @Value("${jwt.secret}")
+    private String secret;
+
+    @Value("${captcha.is-send:false}")
+    private boolean isSend;
 
 
     /**
@@ -65,14 +83,16 @@ public class UserServiceImpl implements IUserService {
         if (sendTimes != null && sendTimes >= sendLimit) {
             throw new ServiceException(ResultCode.FAILED_TIMES_LIMIT);
         }
-        String code = RandomUtil.randomNumbers(6);
+        String code = isSend ? RandomUtil.randomNumbers(6) : Constants.DEFAULT_CODE;
         //缓存验证码并设置过期时间5分钟
         redisService.setCacheObject(emailCodeKey, code, CacheConstants.EMAIL_CODE_EXP, TimeUnit.MINUTES);
-        try {
-            mailService.send(userDTO.getEmail(), Constants.MAIL_SUBJECT, buildContent(code));
-        } catch (Exception e) {
-            log.error("发送邮件失败", e);
-            throw new ServiceException(ResultCode.FAILED_EMAIL_SEND);
+        if (isSend) {
+            try {
+                mailService.send(userDTO.getEmail(), Constants.MAIL_SUBJECT, buildContent(code));
+            } catch (Exception e) {
+                log.error("发送邮件失败", e);
+                throw new ServiceException(ResultCode.FAILED_EMAIL_SEND);
+            }
         }
         //发送成功后，计数加一
         redisService.increment(codeTimesKey);
@@ -84,6 +104,46 @@ public class UserServiceImpl implements IUserService {
             redisService.expire(codeTimesKey, seconds, TimeUnit.SECONDS);
         }
         return true;
+    }
+
+    /**
+     * 流程：
+     * 1. 进行验证码验证：验证码缓存是否存在（有效），验证码是否正确
+     * 2. 查询数据库，如果用户不存在（新用户），则先创建用户（数据库插入）
+     * 3. 创建并缓存，返回token
+     * @param email
+     * @param code
+     * @return
+     */
+    @Override
+    public String codeLogin(String email, String code) {
+        checkCode(email, code);
+
+        User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getEmail, email));
+        if (user == null) {
+            //新用户
+            user = new User();
+            user.setEmail(email);
+            user.setStatus(UserStatus.NORMAL.getValue());
+            userMapper.insert(user);
+        }
+        String token = tokenService.createTokenAndCache(user.getUserId(),
+                secret, UserIdentity.ORDINARY, user.getNickName());
+        return token;
+    }
+
+    private void checkCode(String email, String code) {
+        String emailCodeKey = getEmailCodeKey(email);
+        String cacheCode = redisService.getCacheObject(emailCodeKey, String.class);
+        //验证码缓存不存在
+        if (StrUtil.isEmpty(cacheCode)) {
+            throw new ServiceException(ResultCode.FAILED_INVALID_CODE);
+        }
+        //验证码错误
+        if (!code.equals(cacheCode)) {
+            throw new ServiceException(ResultCode.FAILED_ERROR_CODE);
+        }
+        redisService.deleteObject(emailCodeKey);
     }
 
     private String getCodeTimesKey(String email) {

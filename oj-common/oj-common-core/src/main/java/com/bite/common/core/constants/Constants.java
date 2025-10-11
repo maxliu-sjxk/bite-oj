@@ -10,4 +10,6 @@ public class Constants {
     public static final Integer FALSE = 0;
 
     public static final String MAIL_SUBJECT = "【OJ】验证码";
+
+    public static final String DEFAULT_CODE = "123456";
 }

@@ -24,6 +24,8 @@ public enum ResultCode {
     FAILED_EMAIL_SEND           (3105, "邮件发送失败"),
     FAILED_FREQUENT_REQUEST     (3106, "请求过于频繁，请稍后再试"),
     FAILED_TIMES_LIMIT          (3107, "当天请求次数已达上限"),
+    FAILED_INVALID_CODE         (3108, "验证码无效"),
+    FAILED_ERROR_CODE         (3108, "验证码错误"),
 
 
     EXAM_START_TIME_TOO_EARLY   (3201, "竞赛开始时间不能早于当前时间"),
