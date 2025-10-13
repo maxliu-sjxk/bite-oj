@@ -5,6 +5,8 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bite.common.core.constants.CacheConstants;
 import com.bite.common.core.constants.Constants;
+import com.bite.common.core.constants.HttpConstants;
+import com.bite.common.core.domain.R;
 import com.bite.common.core.enums.ResultCode;
 import com.bite.common.core.enums.UserIdentity;
 import com.bite.common.core.enums.UserStatus;
@@ -57,6 +59,7 @@ public class UserServiceImpl implements IUserService {
      * 1. 验证码有效期为5分钟
      * 2. 验证码获取不能太频繁，1分钟只能获取一次
      * 3. 验证码每天限获取50（可动态调整）次
+     *
      * 逻辑：
      * 判断此次验证码请求是否为频繁（两次请求间隔小于60s）
      * 判断当天获取验证码是否超过50次
@@ -65,6 +68,9 @@ public class UserServiceImpl implements IUserService {
      * 向用户邮箱发送验证码
      * 当天验证码请求计数加一
      * 判断此时是否为当天第一次获取验证码，如果是则设置key的过期时间，为当前时间与零点时间差
+     *
+     * 其他：
+     * 增加isSend开关，用于控制是否真的发送邮件，目的：方便测试
      * @param userDTO
      * @return
      */
@@ -130,6 +136,17 @@ public class UserServiceImpl implements IUserService {
         String token = tokenService.createTokenAndCache(user.getUserId(),
                 secret, UserIdentity.ORDINARY, user.getNickName());
         return token;
+    }
+
+    @Override
+    public R<Void> logout(String token) {
+        if (StrUtil.isNotEmpty(token) && token.startsWith(HttpConstants.PREFIX)) {
+            token = token.replaceFirst(HttpConstants.PREFIX, StrUtil.EMPTY);
+        }
+        if (!tokenService.deleteToken(token, secret)) {
+            return R.fail();
+        }
+        return R.ok();
     }
 
     private void checkCode(String email, String code) {
