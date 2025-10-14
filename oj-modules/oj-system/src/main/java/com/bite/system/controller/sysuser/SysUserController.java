@@ -5,7 +5,7 @@ import com.bite.common.core.controller.BaseController;
 import com.bite.common.core.domain.R;
 import com.bite.system.domain.sysuser.dto.LoginDTO;
 import com.bite.system.domain.sysuser.dto.SysUserSaveDTO;
-import com.bite.system.domain.sysuser.vo.LoginUserVO;
+import com.bite.common.core.domain.vo.LoginUserVO;
 import com.bite.system.domain.sysuser.vo.SysUserVO;
 import com.bite.system.service.sysuser.ISysUserService;
 import io.swagger.v3.oas.annotations.Operation;

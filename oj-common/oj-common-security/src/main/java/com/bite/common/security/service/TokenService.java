@@ -34,7 +34,8 @@ public class TokenService {
      * @param nickName
      * @return
      */
-    public String createTokenAndCache(Long userId, String secret, UserIdentity identity, String nickName) {
+    public String createTokenAndCache(Long userId, String secret,
+                                      UserIdentity identity, String nickName, String headImage) {
         //生成UUID
         String userKey = UUID.fastUUID().toString();
 
@@ -42,7 +43,7 @@ public class TokenService {
         String token = createToken(userId, secret, userKey);
 
         //缓存
-        cacheLoginUser(userKey, identity, nickName);
+        cacheLoginUser(userKey, identity, nickName, headImage);
 
         return token;
     }
@@ -53,13 +54,15 @@ public class TokenService {
      * @param identity
      * @param nickName
      */
-    private void cacheLoginUser(String userKey, UserIdentity identity, String nickName) {
+    private void cacheLoginUser(String userKey, UserIdentity identity,
+                                String nickName, String headImage) {
         //key-> jwt:token:uuid
         //value<string>-> LoginUser{ identity:int , …… }
         String key = CacheConstants.LOGIN_TOKEN_KEY_PREFIX + userKey;
         LoginUser loginUser = new LoginUser();
         loginUser.setIdentity(identity.getValue());
         loginUser.setNickName(nickName);
+        loginUser.setHeadImage(headImage);
         redisService.setCacheObject(key, loginUser, CacheConstants.EXP, TimeUnit.MINUTES);
     }
 

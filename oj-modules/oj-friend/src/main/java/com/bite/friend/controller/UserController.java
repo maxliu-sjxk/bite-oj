@@ -3,6 +3,7 @@ package com.bite.friend.controller;
 import com.bite.common.core.constants.HttpConstants;
 import com.bite.common.core.controller.BaseController;
 import com.bite.common.core.domain.R;
+import com.bite.common.core.domain.vo.LoginUserVO;
 import com.bite.friend.domain.dto.UserDTO;
 import com.bite.friend.service.IUserService;
 import jakarta.annotation.Resource;
@@ -30,6 +31,11 @@ public class UserController extends BaseController {
     @DeleteMapping("/logout")
     public R<Void> logout(@RequestHeader(HttpConstants.AUTHENTICATION) String token) {
         return userService.logout(token);
+    }
+
+    @GetMapping("/info")
+    public R<LoginUserVO> info(@RequestHeader(HttpConstants.AUTHENTICATION) String token) {
+        return userService.info(token);
     }
 
 }

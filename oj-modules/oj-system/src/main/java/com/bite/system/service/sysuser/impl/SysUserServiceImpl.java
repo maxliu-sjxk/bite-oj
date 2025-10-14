@@ -12,7 +12,7 @@ import com.bite.common.security.exception.ServiceException;
 import com.bite.common.security.service.TokenService;
 import com.bite.system.domain.sysuser.SysUser;
 import com.bite.system.domain.sysuser.dto.SysUserSaveDTO;
-import com.bite.system.domain.sysuser.vo.LoginUserVO;
+import com.bite.common.core.domain.vo.LoginUserVO;
 import com.bite.system.mapper.sysuser.SysUserMapper;
 import com.bite.system.service.sysuser.ISysUserService;
 import com.bite.system.utils.BCryptUtils;
@@ -51,7 +51,7 @@ public class SysUserServiceImpl implements ISysUserService {
         }
         //登陆成功
         String token = tokenService.createTokenAndCache(sysUser.getUserId(),
-                secret, UserIdentity.ADMIN, sysUser.getNickName());
+                secret, UserIdentity.ADMIN, sysUser.getNickName(), null);
         return R.ok(token);
     }
 

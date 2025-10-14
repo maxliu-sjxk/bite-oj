@@ -6,7 +6,9 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bite.common.core.constants.CacheConstants;
 import com.bite.common.core.constants.Constants;
 import com.bite.common.core.constants.HttpConstants;
+import com.bite.common.core.domain.LoginUser;
 import com.bite.common.core.domain.R;
+import com.bite.common.core.domain.vo.LoginUserVO;
 import com.bite.common.core.enums.ResultCode;
 import com.bite.common.core.enums.UserIdentity;
 import com.bite.common.core.enums.UserStatus;
@@ -134,7 +136,7 @@ public class UserServiceImpl implements IUserService {
             userMapper.insert(user);
         }
         String token = tokenService.createTokenAndCache(user.getUserId(),
-                secret, UserIdentity.ORDINARY, user.getNickName());
+                secret, UserIdentity.ORDINARY, user.getNickName(), user.getHeadImage());
         return token;
     }
 
@@ -147,6 +149,23 @@ public class UserServiceImpl implements IUserService {
             return R.fail();
         }
         return R.ok();
+    }
+
+    @Override
+    public R<LoginUserVO> info(String token) {
+        //去除前缀
+        if (StrUtil.isNotEmpty(token) && token.startsWith(HttpConstants.PREFIX)) {
+            token = token.replaceFirst(HttpConstants.PREFIX, StrUtil.EMPTY);
+        }
+        //获取用户昵称
+        LoginUser loginUser = tokenService.getLoginUser(token, secret);
+        if (loginUser == null) {
+            return R.fail();
+        }
+        LoginUserVO loginUserVO = new LoginUserVO();
+        loginUserVO.setNickName(loginUser.getNickName());
+        loginUserVO.setHeadImage(loginUser.getHeadImage());
+        return R.ok(loginUserVO);
     }
 
     private void checkCode(String email, String code) {
