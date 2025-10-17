@@ -1,11 +1,11 @@
-package com.bite.friend.controller;
+package com.bite.friend.controller.user;
 
 import com.bite.common.core.constants.HttpConstants;
 import com.bite.common.core.controller.BaseController;
 import com.bite.common.core.domain.R;
 import com.bite.common.core.domain.vo.LoginUserVO;
-import com.bite.friend.domain.dto.UserDTO;
-import com.bite.friend.service.IUserService;
+import com.bite.friend.domain.user.dto.UserDTO;
+import com.bite.friend.service.user.IUserService;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -37,5 +37,7 @@ public class UserController extends BaseController {
     public R<LoginUserVO> info(@RequestHeader(HttpConstants.AUTHENTICATION) String token) {
         return userService.info(token);
     }
+
+
 
 }

@@ -1,4 +1,4 @@
-package com.bite.friend.service.impl;
+package com.bite.friend.service.user.impl;
 
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
@@ -16,10 +16,10 @@ import com.bite.common.message.service.Mail;
 import com.bite.common.redis.service.RedisService;
 import com.bite.common.security.exception.ServiceException;
 import com.bite.common.security.service.TokenService;
-import com.bite.friend.domain.User;
-import com.bite.friend.domain.dto.UserDTO;
-import com.bite.friend.mapper.UserMapper;
-import com.bite.friend.service.IUserService;
+import com.bite.friend.domain.user.User;
+import com.bite.friend.domain.user.dto.UserDTO;
+import com.bite.friend.mapper.user.UserMapper;
+import com.bite.friend.service.user.IUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

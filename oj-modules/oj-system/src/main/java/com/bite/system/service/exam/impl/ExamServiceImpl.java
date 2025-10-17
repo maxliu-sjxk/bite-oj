@@ -175,6 +175,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper, ExamQuestio
             throw new ServiceException(ResultCode.EXAM_NOT_HAS_QUESTION);
         }
         exam.setStatus(Constants.TRUE);
+        //TODO 写入Redis
         return examMapper.updateById(exam);
     }
 
@@ -183,6 +184,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper, ExamQuestio
         Exam exam = getExam(examId);
         checkExamStarted(exam);
         exam.setStatus(Constants.FALSE);
+        //TODO 移除Redis
         return examMapper.updateById(exam);
     }
 
