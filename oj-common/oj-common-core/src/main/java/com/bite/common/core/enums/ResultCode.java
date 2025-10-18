@@ -25,14 +25,15 @@ public enum ResultCode {
     FAILED_FREQUENT_REQUEST     (3106, "请求过于频繁，请稍后再试"),
     FAILED_TIMES_LIMIT          (3107, "当天请求次数已达上限"),
     FAILED_INVALID_CODE         (3108, "验证码无效"),
-    FAILED_ERROR_CODE         (3108, "验证码错误"),
+    FAILED_ERROR_CODE           (3108, "验证码错误"),
 
 
     EXAM_START_TIME_TOO_EARLY   (3201, "竞赛开始时间不能早于当前时间"),
     EXAM_START_TIME_TOO_LATE    (3202, "竞赛开始时间不能晚于结束时间"),
     EXAM_QUESTION_NOT_EXISTS    (3203, "添加了不存在的题目"),
     EXAM_ALREADY_STARTED        (3204, "竞赛已开始，不能执行任何操作"),
-    EXAM_NOT_HAS_QUESTION       (3205, "竞赛需至少包含一个题目");
+    EXAM_NOT_HAS_QUESTION       (3205, "竞赛需至少包含一个题目"),
+    EXAM_ALREADY_ENDED          (3206, "竞赛已完赛，不能执行任何操作");
 
 
 

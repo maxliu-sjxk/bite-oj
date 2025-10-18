@@ -22,5 +22,10 @@ public class ExamController extends BaseController {
         return getTableDataInfo(examService.list(examQueryDTO));
     }
 
+    @GetMapping("/semiLogin/list")
+    public TableDataInfo redisList(ExamQueryDTO examQueryDTO) {
+        return examService.redisList(examQueryDTO);
+    }
+
 
 }

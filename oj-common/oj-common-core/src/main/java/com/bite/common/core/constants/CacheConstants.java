@@ -22,4 +22,10 @@ public class CacheConstants {
 
     //邮箱验证码允许发送最小间隔，单位：秒
     public static final long MIN_SEND_INTERVAL = 60;
+
+    public static final String EXAM_UNFINISHED_LIST_KEY = "exam:unfinished:list";
+
+    public static final String EXAM_HISTORY_LIST_KEY = "exam:history:list";
+
+    public static final String EXAM_DETAIL_KEY_PREFIX = "exam:detail:";
 }

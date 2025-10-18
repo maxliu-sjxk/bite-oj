@@ -17,6 +17,7 @@ import com.bite.system.domain.exam.vo.ExamDetailVO;
 import com.bite.system.domain.exam.vo.ExamVO;
 import com.bite.system.domain.question.Question;
 import com.bite.system.domain.question.vo.QuestionVO;
+import com.bite.system.manager.ExamCacheManager;
 import com.bite.system.mapper.exam.ExamMapper;
 import com.bite.system.mapper.exam.ExamQuestionMapper;
 import com.bite.system.mapper.question.QuestionMapper;
@@ -42,6 +43,9 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper, ExamQuestio
 
     @Autowired
     private ExamQuestionMapper examQuestionMapper;
+
+    @Autowired
+    private ExamCacheManager examCacheManager;
 
 
     @Override
@@ -168,6 +172,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper, ExamQuestio
     @Override
     public int publish(Long examId) {
         Exam exam = getExam(examId);
+        checkExamEnded(exam);
         //检查要发布的竞赛中是否包含题目
         Long count = examQuestionMapper.selectCount(new LambdaQueryWrapper<ExamQuestion>()
                 .eq(ExamQuestion::getExamId, examId));
@@ -175,7 +180,7 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper, ExamQuestio
             throw new ServiceException(ResultCode.EXAM_NOT_HAS_QUESTION);
         }
         exam.setStatus(Constants.TRUE);
-        //TODO 写入Redis
+        examCacheManager.addCache(exam);
         return examMapper.updateById(exam);
     }
 
@@ -183,9 +188,16 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper, ExamQuestio
     public int cancelPublish(Long examId) {
         Exam exam = getExam(examId);
         checkExamStarted(exam);
+        checkExamEnded(exam);
         exam.setStatus(Constants.FALSE);
-        //TODO 移除Redis
+        examCacheManager.deleteCache(examId);
         return examMapper.updateById(exam);
+    }
+
+    private void checkExamEnded(Exam exam) {
+        if (exam.getEndTime().isBefore(LocalDateTime.now())) {
+            throw new ServiceException(ResultCode.EXAM_ALREADY_ENDED);
+        }
     }
 
     private void checkExamStarted(Exam exam) {

@@ -35,6 +35,20 @@
             <artifactId>oj-common-mybatis</artifactId>
             <version>${oj-common-mybatis.version}</version>
         </dependency>
+        <!-- MapStruct 核心库：提供注解和基础功能 -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>1.5.5.Final</version>
+        </dependency>
+
+        <!-- MapStruct 处理器：编译期生成映射代码（必须，否则无法使用） -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <version>1.5.5.Final</version>
+            <scope>provided</scope> <!-- 仅编译期生效，不打包到运行环境 -->
+        </dependency>
     </dependencies>
 
     <properties>
