@@ -55,6 +55,7 @@ public class ExamCacheManager {
      *
      * 遗留问题：
      * 是否需要在此再查询数据库
+     * 有必要将examVOList转换为examList吗
      *
      * 目前实现：将service的数据库查询结果直接缓存
      */

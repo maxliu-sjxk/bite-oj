@@ -6,21 +6,21 @@
 
     <select id="selectExamList" resultType="com.bite.system.domain.exam.vo.ExamVO">
         SELECT
-        te.exam_id,
-        te.title,
-        te.start_time,
-        te.end_time,
-        te.create_time,
-        ts.nick_name as create_name,
-        te.status
+            te.exam_id,
+            te.title,
+            te.start_time,
+            te.end_time,
+            te.create_time,
+            ts.nick_name as create_name,
+            te.status
         FROM
-        tb_exam te
+            tb_exam te
         left join
-        tb_sys_user ts
+            tb_sys_user ts
         on
-        te.create_by = ts.user_id
+            te.create_by = ts.user_id
         <where>
-            <if test="title !=null and title !='' ">
+            <if test="title != null and title != '' ">
                 AND te.title LIKE CONCAT('%',#{title},'%')
             </if>
             <if test="startTime != null and startTime != '' ">

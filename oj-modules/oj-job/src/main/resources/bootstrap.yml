@@ -1,5 +1,14 @@
-server:
-  port: 9203
 spring:
   application:
     name: oj-job
+  profiles:
+    active: local
+  cloud:
+    nacos:
+      discovery:
+        namespace: 6da8a526-6d1e-4653-84f9-35a9e7371961
+        server-addr: 127.0.0.1:8848
+      config:
+        namespace: 6da8a526-6d1e-4653-84f9-35a9e7371961
+        server-addr: 127.0.0.1:8848
+        file-extension: yaml
