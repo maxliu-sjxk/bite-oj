@@ -2,12 +2,14 @@ package com.bite.friend.manager;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bite.common.core.constants.CacheConstants;
 import com.bite.common.core.enums.ExamListType;
 import com.bite.common.redis.service.RedisService;
 import com.bite.friend.domain.exam.Exam;
 import com.bite.friend.domain.exam.dto.ExamQueryDTO;
 import com.bite.friend.domain.exam.vo.ExamVO;
+import com.bite.friend.domain.user.UserExam;
 import com.bite.friend.mapper.exam.ExamMapper;
 import com.bite.friend.mapper.user.UserExamMapper;
 import com.bite.friend.mapstruct.ExamVoToExamMapper;
@@ -144,5 +146,30 @@ public class ExamCacheManager {
 
     private String getUserExamListKey(Long userId) {
         return CacheConstants.USER_EXAM_LIST_KEY_PREFIX + userId;
+    }
+
+    public List<Long> getAllUserExamList(Long userId) {
+        String userExamListKey = getUserExamListKey(userId);
+        List<Long> userExamIdList  = redisService.getCacheListByRange(userExamListKey, 0, -1, Long.class);
+        //缓存未命中
+        if (CollectionUtil.isNotEmpty(userExamIdList)) {
+            return userExamIdList;
+        }
+        //查询数据库
+        List<UserExam> userExamList = userExamMapper.selectList(new LambdaQueryWrapper<UserExam>()
+                .eq(UserExam::getUserId, userId));
+        if (CollectionUtil.isEmpty(userExamList)) {
+            //数据库中无数据
+            return null;
+        }
+        //刷新缓存，refreshCache方法需要List<ExamVO>参数，而UserExam与ExamVO的属性差别过大，
+        // 并不能支撑转换，因此此处需要查询数据库（老师代码依旧是在refreshCache方法中统一再查数据库，而我的代码并没有统一
+        // 再查，因此本质上老师的代码也是额外查询一次，只不过位置不同，后续如果还需要大调整可以考虑重构为老师的写法）
+         List<ExamVO> examVOList = userExamMapper.selectUserExamList(userId);
+        //如果用户报名过任一竞赛，就刷新 user:exam:list:用户id 缓存
+        if (CollectionUtil.isNotEmpty(examVOList)) {
+            refreshCache(examVOList, ExamListType.USER_EXAM_LIST.getValue(), userId);
+        }
+        return userExamList.stream().map(UserExam::getExamId).toList();
     }
 }
