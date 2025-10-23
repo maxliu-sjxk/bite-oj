@@ -12,4 +12,6 @@ public class Constants {
     public static final String MAIL_SUBJECT = "【OJ】验证码";
 
     public static final String DEFAULT_CODE = "123456";
+
+    public static final String USER_ID = "user_id";
 }

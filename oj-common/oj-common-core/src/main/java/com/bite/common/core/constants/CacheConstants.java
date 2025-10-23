@@ -28,4 +28,7 @@ public class CacheConstants {
     public static final String EXAM_HISTORY_LIST_KEY = "exam:history:list";
 
     public static final String EXAM_DETAIL_KEY_PREFIX = "exam:detail:";
+
+
+    public static final String USER_EXAM_LIST_KEY_PREFIX = "user:exam:list:";
 }

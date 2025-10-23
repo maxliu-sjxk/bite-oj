@@ -86,11 +86,10 @@ public class TokenService {
 
     /**
      * 延长token有效期
-     * @param token
-     * @param secret
+     * @param claims
      */
-    public void extendExpire(String token, String secret) {
-        String userKey = getUserKey(token, secret);
+    public void extendExpire(Claims claims) {
+        String userKey = getUserKey(claims);
         if (userKey == null) {
             return;
         }
@@ -99,6 +98,7 @@ public class TokenService {
             redisService.expire(getTokenKey(userKey), CacheConstants.EXP, TimeUnit.MINUTES);
         }
     }
+
 
     /**
      * 解析 token获取 userKey（uuid）
@@ -121,6 +121,48 @@ public class TokenService {
         }
         //解析载荷获取userKey
         return JwtUtils.getUserKey(claims);
+    }
+
+    public String getUserKey(Claims claims) {
+        if (claims == null) {
+            return null;
+        }
+        return JwtUtils.getUserKey(claims);
+    }
+
+
+    /**
+     * 获取用户Id
+     * @param claims
+     * @return
+     */
+    public Long getUserId(Claims claims) {
+        if (claims == null) {
+            return null;
+        }
+        return Long.valueOf(JwtUtils.getUserId(claims));
+    }
+
+
+    /**
+     * 获取Claims
+     * @param token
+     * @param secret
+     * @return
+     */
+    public Claims getClaims(String token, String secret) {
+        Claims claims;
+        try {
+            claims = JwtUtils.parseToken(token, secret);
+            if (claims == null) {
+                log.error("token解析失败: {}", token);
+                return null;
+            }
+        } catch (Exception e) {
+            log.error("token解析失败: {}, 异常", token, e);
+            return null;
+        }
+        return claims;
     }
 
     /**

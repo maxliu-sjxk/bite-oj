@@ -9,6 +9,7 @@ import com.bite.friend.domain.exam.Exam;
 import com.bite.friend.domain.exam.dto.ExamQueryDTO;
 import com.bite.friend.domain.exam.vo.ExamVO;
 import com.bite.friend.mapper.exam.ExamMapper;
+import com.bite.friend.mapper.user.UserExamMapper;
 import com.bite.friend.mapstruct.ExamVoToExamMapper;
 import com.github.pagehelper.PageHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,17 +32,22 @@ public class ExamCacheManager {
     @Autowired
     private ExamMapper examMapper;
 
+    @Autowired
+    private UserExamMapper userExamMapper;
 
-    public Long getExamListSize(Integer examListType) {
-        String examListKey = getExamListKey(examListType);
+
+    public Long getExamListSize(Integer examListType, Long userId) {
+        String examListKey = getExamListKey(examListType, userId);
         return redisService.getListSize(examListKey);
     }
 
-    private String getExamListKey(Integer examListType) {
+    private String getExamListKey(Integer examListType, Long userId) {
         if (ExamListType.EXAM_UNFINISHED_LIST.getValue().equals(examListType)) {
             return CacheConstants.EXAM_UNFINISHED_LIST_KEY;
-        } else {
+        } else if (ExamListType.EXAM_HISTORY_LIST.getValue().equals(examListType)){
             return CacheConstants.EXAM_HISTORY_LIST_KEY;
+        } else {
+            return getUserExamListKey(userId);
         }
     }
 
@@ -59,42 +65,62 @@ public class ExamCacheManager {
      *
      * 目前实现：将service的数据库查询结果直接缓存
      */
-    public void refreshCache(List<ExamVO> examVOList, Integer examListType) {
+    public void refreshCache(List<ExamVO> examVOList, Integer examListType, Long userId) {
         if (CollectionUtil.isEmpty(examVOList)) {
             return;
         }
         //对象转换
         List<Exam> examList = examVoToExamConverter.voListToEntityList(examVOList);
         //通过Redis批量插入/设置竞赛详情缓存
-        Map<String, Exam> examMap = new HashMap<>();
-        List<Long> examIdList = new ArrayList<>();
+        Map<String, Exam> examMap = new HashMap<>(); //用于竞赛详情缓存的批量写入
+        List<Long> examIdList = new ArrayList<>(); //用于竞赛列表写入
         for (Exam exam : examList) {
             examMap.put(getExamDetailKey(exam.getExamId()), exam);
             examIdList.add(exam.getExamId());
         }
         redisService.multiSet(examMap);
         //如果redis中数据有误，直接接着push会导致数据重复或继续有误，因此先删除
-        redisService.deleteObject(getExamListKey(examListType));
-        redisService.rightPushAll(getExamListKey(examListType), examIdList);
+        redisService.deleteObject(getExamListKey(examListType, userId));
+        redisService.rightPushAll(getExamListKey(examListType, userId), examIdList);
     }
 
-    public List<ExamVO> getExamVOListFromCache(ExamQueryDTO examQueryDTO) {
+
+    /**
+     * 从缓存中获取竞赛列表
+     * TODO 如果用户选择了startTime或endTime过滤，则需要额外处理
+     * 方案：
+     * 将缓存中列表的所有数据（id）查询出来，然后根据id从缓存中查出所有的竞赛详情信息，拿到后需要根据过滤条件进行数据的筛选，
+     * 筛选结束后得到一个新的列表，新列表就是符合过滤条件的所有竞赛：
+     * total => 该列表的记录总数
+     * rows => 列表数据分页后得到的新列表（具体分页逻辑需要自行处理）
+     *
+     * 上述思路涉及到的所有方法都需要修改
+     * @param examQueryDTO
+     * @return
+     */
+    public List<ExamVO> getExamVOListFromCache(ExamQueryDTO examQueryDTO, Long userId) {
         int start = (examQueryDTO.getPageNum() - 1) * examQueryDTO.getPageSize();
         int end = start + examQueryDTO.getPageSize() - 1;
-        String examListKey = getExamListKey(examQueryDTO.getType());
+        String examListKey = getExamListKey(examQueryDTO.getType(), userId);
         List<Long> examIdList = redisService.getCacheListByRange(examListKey, start, end, Long.class);
         List<ExamVO> examVOList = assembleExamVOList(examIdList);
         if (CollectionUtil.isEmpty(examVOList)) {
             //Redis数据有问题，查询数据库
-            examVOList = getExamVOListFromDB(examQueryDTO);
-            refreshCache(examVOList, examQueryDTO.getType());
+            examVOList = getExamVOListFromDB(examQueryDTO, userId);
+            refreshCache(examVOList, examQueryDTO.getType(), userId);
         }
         return examVOList;
     }
 
-    private List<ExamVO> getExamVOListFromDB(ExamQueryDTO examQueryDTO) {
+    private List<ExamVO> getExamVOListFromDB(ExamQueryDTO examQueryDTO, Long userId) {
         PageHelper.startPage(examQueryDTO.getPageNum(), examQueryDTO.getPageSize());
-        return examMapper.selectExamList(examQueryDTO);
+        if (examQueryDTO.getType().equals(ExamListType.USER_EXAM_LIST.getValue())) {
+            //"我的竞赛"分支
+            return userExamMapper.selectUserExamList(userId);
+        } else {
+            //竞赛列表分支
+            return examMapper.selectExamList(examQueryDTO);
+        }
     }
 
     private List<ExamVO> assembleExamVOList(List<Long> examIdList) {
@@ -109,5 +135,14 @@ public class ExamCacheManager {
             return null;
         }
         return examVOList;
+    }
+
+    public void cacheUserExamList(Long userId, Long examId) {
+        String userExamListKey = getUserExamListKey(userId);
+        redisService.leftPushForList(userExamListKey, examId);
+    }
+
+    private String getUserExamListKey(Long userId) {
+        return CacheConstants.USER_EXAM_LIST_KEY_PREFIX + userId;
     }
 }

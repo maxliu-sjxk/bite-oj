@@ -41,19 +41,19 @@ public class ExamServiceImpl implements IExamService {
     @Override
     public TableDataInfo redisList(ExamQueryDTO examQueryDTO) {
         //查询缓存中竞赛list的大小
-        Long total = examCacheManager.getExamListSize(examQueryDTO.getType());
+        Long total = examCacheManager.getExamListSize(examQueryDTO.getType(), null);
         List<ExamVO> examVOList;
         if (total == null || total <= 0L) {
             //缓存未命中，直接查询数据库
             PageHelper.startPage(examQueryDTO.getPageNum(), examQueryDTO.getPageSize());
             examVOList = examMapper.selectExamList(examQueryDTO);
             //刷新缓存
-            examCacheManager.refreshCache(examVOList, examQueryDTO.getType());
+            examCacheManager.refreshCache(examVOList, examQueryDTO.getType(), null);
             total = new PageInfo<>(examVOList).getTotal();
         } else {
             //缓存命中，直接查询缓存
-            examVOList = examCacheManager.getExamVOListFromCache(examQueryDTO);
-            total = examCacheManager.getExamListSize(examQueryDTO.getType());
+            examVOList = examCacheManager.getExamVOListFromCache(examQueryDTO, null);
+            total = examCacheManager.getExamListSize(examQueryDTO.getType(), null);
         }
         if (CollectionUtil.isEmpty(examVOList)) {
             return TableDataInfo.empty();

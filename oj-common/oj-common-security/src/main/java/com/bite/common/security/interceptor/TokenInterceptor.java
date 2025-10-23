@@ -1,8 +1,11 @@
 package com.bite.common.security.interceptor;
 
 import cn.hutool.core.util.StrUtil;
+import com.bite.common.core.constants.Constants;
 import com.bite.common.core.constants.HttpConstants;
+import com.bite.common.core.utils.ThreadLocalUtils;
 import com.bite.common.security.service.TokenService;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,11 +40,18 @@ public class TokenInterceptor implements HandlerInterceptor {
         if (StrUtil.isEmpty(token)) {
             return true;
         }
+        Claims claims = tokenService.getClaims(token, secret);
+        Long userId = tokenService.getUserId(claims);
+        ThreadLocalUtils.set(Constants.USER_ID, userId);
         //调用延长方法
-        tokenService.extendExpire(token, secret);
+        tokenService.extendExpire(claims);
         return true;
     }
 
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        ThreadLocalUtils.remove();
+    }
 
     private String getToken(HttpServletRequest request) {
         String token = request.getHeader(HttpConstants.AUTHENTICATION);
