@@ -49,6 +49,12 @@
             <version>1.5.5.Final</version>
             <scope>provided</scope> <!-- 仅编译期生效，不打包到运行环境 -->
         </dependency>
+
+        <dependency>
+            <groupId>com.bite</groupId>
+            <artifactId>oj-common-elasticsearch</artifactId>
+            <version>${oj-common-elasticsearch.version}</version>
+        </dependency>
     </dependencies>
 
 
