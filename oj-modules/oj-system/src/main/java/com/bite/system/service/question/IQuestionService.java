@@ -14,7 +14,7 @@ public interface IQuestionService {
 
     List<QuestionVO> list(QuestionQueryDTO questionQueryDTO);
 
-    int add(QuestionAddDTO questionAddDTO);
+    boolean add(QuestionAddDTO questionAddDTO);
 
     R<QuestionDetailVO> detail(Long questionId);
 

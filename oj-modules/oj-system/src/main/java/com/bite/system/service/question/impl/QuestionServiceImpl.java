@@ -12,8 +12,10 @@ import com.bite.system.domain.question.Question;
 import com.bite.system.domain.question.dto.QuestionAddDTO;
 import com.bite.system.domain.question.dto.QuestionEditDTO;
 import com.bite.system.domain.question.dto.QuestionQueryDTO;
+import com.bite.system.domain.question.es.QuestionES;
 import com.bite.system.domain.question.vo.QuestionDetailVO;
 import com.bite.system.domain.question.vo.QuestionVO;
+import com.bite.system.elasticsearch.QuestionRepository;
 import com.bite.system.mapper.question.QuestionMapper;
 import com.bite.system.service.question.IQuestionService;
 import com.github.pagehelper.PageHelper;
@@ -30,6 +32,9 @@ public class QuestionServiceImpl implements IQuestionService {
 
     @Autowired
     private QuestionMapper questionMapper;
+
+    @Autowired
+    private QuestionRepository questionRepository;
 
     @Override
     public List<QuestionVO> list(QuestionQueryDTO questionQueryDTO) {
@@ -49,7 +54,7 @@ public class QuestionServiceImpl implements IQuestionService {
     }
 
     @Override
-    public int add(QuestionAddDTO questionAddDTO) {
+    public boolean add(QuestionAddDTO questionAddDTO) {
         //查询数据库，判断题目是否已经存在
         List<Question> questions = questionMapper.selectList(new LambdaQueryWrapper<Question>()
                 .eq(Question::getTitle, questionAddDTO.getTitle()));
@@ -58,7 +63,14 @@ public class QuestionServiceImpl implements IQuestionService {
         }
         Question question = new Question();
         BeanUtil.copyProperties(questionAddDTO, question);
-        return questionMapper.insert(question);
+        int rows = questionMapper.insert(question);
+        if (rows <= 0) {
+            return false;
+        }
+        QuestionES questionES = new QuestionES();
+        BeanUtil.copyProperties(question, questionES);
+        questionRepository.save(questionES);
+        return true;
     }
 
     @Override
@@ -73,12 +85,16 @@ public class QuestionServiceImpl implements IQuestionService {
     public int edit(QuestionEditDTO questionEditDTO) {
         Question oldQuestion = selectQuestionById(questionEditDTO.getQuestionId());
         BeanUtil.copyProperties(questionEditDTO, oldQuestion);
+        QuestionES questionES = new QuestionES();
+        BeanUtil.copyProperties(oldQuestion, questionES);
+        questionRepository.save(questionES);
         return questionMapper.updateById(oldQuestion);
     }
 
     @Override
     public int delete(Long questionId) {
         Question question = selectQuestionById(questionId);
+        questionRepository.deleteById(questionId);
         return questionMapper.deleteById(questionId);
     }
 
