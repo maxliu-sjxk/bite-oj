@@ -34,6 +34,7 @@ public enum ResultCode {
     EXAM_ALREADY_STARTED        (3204, "竞赛已开始，不能执行任何操作"),
     EXAM_NOT_HAS_QUESTION       (3205, "竞赛需至少包含一个题目"),
     EXAM_ALREADY_ENDED          (3206, "竞赛已完赛，不能执行任何操作"),
+    EXAM_ALREADY_PUBLISHED      (3207, "竞赛已发布，不能执行删除或编辑操作"),
 
     FAILED_REPEATED_ENTER       (3301, "已报名，无需重复报名");
 

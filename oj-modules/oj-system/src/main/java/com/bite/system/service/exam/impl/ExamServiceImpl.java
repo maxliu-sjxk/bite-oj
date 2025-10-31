@@ -138,6 +138,9 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper, ExamQuestio
     public int edit(ExamEditDTO examEditDTO) {
         //验证竞赛是否存在
         Exam exam = getExam(examEditDTO.getExamId());
+        if (Constants.TRUE.equals(exam.getStatus())) {
+            throw new ServiceException(ResultCode.EXAM_ALREADY_PUBLISHED);
+        }
         //检查竞赛是否可编辑（即是否开赛）
         checkExamStarted(exam);
         //验证修改后的竞赛信息是否合法：1. 竞赛标题不能重复 2. 竞赛起始时间符合常理
@@ -163,6 +166,9 @@ public class ExamServiceImpl extends ServiceImpl<ExamQuestionMapper, ExamQuestio
     @Override
     public int delete(Long examId) {
         Exam exam = getExam(examId);
+        if (Constants.TRUE.equals(exam.getStatus())) {
+            throw new ServiceException(ResultCode.EXAM_ALREADY_PUBLISHED);
+        }
         checkExamStarted(exam);
         examQuestionMapper.delete(new LambdaQueryWrapper<ExamQuestion>()
                 .eq(ExamQuestion::getExamId, examId));
