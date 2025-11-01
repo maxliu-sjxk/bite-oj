@@ -5,6 +5,7 @@ import com.bite.common.core.controller.BaseController;
 import com.bite.common.core.domain.R;
 import com.bite.common.core.domain.vo.LoginUserVO;
 import com.bite.friend.domain.user.dto.UserDTO;
+import com.bite.friend.domain.user.dto.UserUpdateDTO;
 import com.bite.friend.domain.user.vo.UserVO;
 import com.bite.friend.service.user.IUserService;
 import jakarta.annotation.Resource;
@@ -44,6 +45,8 @@ public class UserController extends BaseController {
         return userService.detail();
     }
 
-
-
+    @PutMapping("/edit")
+    public R<Void> edit(@RequestBody UserUpdateDTO userUpdateDTO) {
+        return toR(userService.edit(userUpdateDTO));
+    }
 }

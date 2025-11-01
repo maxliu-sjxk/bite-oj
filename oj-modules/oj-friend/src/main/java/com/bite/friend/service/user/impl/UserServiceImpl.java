@@ -19,6 +19,7 @@ import com.bite.common.security.exception.ServiceException;
 import com.bite.common.security.service.TokenService;
 import com.bite.friend.domain.user.User;
 import com.bite.friend.domain.user.dto.UserDTO;
+import com.bite.friend.domain.user.dto.UserUpdateDTO;
 import com.bite.friend.domain.user.vo.UserVO;
 import com.bite.friend.manager.UserCacheManager;
 import com.bite.friend.mapper.user.UserMapper;
@@ -185,6 +186,30 @@ public class UserServiceImpl implements IUserService {
             throw new ServiceException(ResultCode.FAILED_USER_NOT_EXISTS);
         }
         return R.ok(userVO);
+    }
+
+    @Override
+    public int edit(UserUpdateDTO userUpdateDTO) {
+        Long userId = ThreadLocalUtils.get(Constants.USER_ID, Long.class);
+        if (userId == null) {
+            throw new ServiceException(ResultCode.FAILED_USER_NOT_EXISTS);
+        }
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new ServiceException(ResultCode.FAILED_USER_NOT_EXISTS);
+        }
+        user.setNickName(userUpdateDTO.getNickName());
+        user.setSex(userUpdateDTO.getSex());
+        user.setSchoolName(userUpdateDTO.getSchoolName());
+        user.setMajorName(userUpdateDTO.getMajorName());
+        user.setPhone(userUpdateDTO.getPhone());
+        user.setEmail(userUpdateDTO.getEmail());
+        user.setWechat(userUpdateDTO.getWechat());
+        user.setIntroduce(userUpdateDTO.getIntroduce());
+        userCacheManager.refreshUserCache(user);
+        tokenService.refreshLoginUser(user.getNickName(), user.getHeadImage(),
+                ThreadLocalUtils.get(Constants.USER_KEY, String.class));
+        return userMapper.updateById(user);
     }
 
     private void checkCode(String email, String code) {

@@ -51,7 +51,7 @@ public class UserCacheManager {
         return userVO;
     }
 
-    private void refreshUserCache(User user) {
+    public void refreshUserCache(User user) {
         String userDetailKey = getUserDetailKey(user.getUserId());
         redisService.setCacheObject(userDetailKey, user, CacheConstants.USER_EXP, TimeUnit.MINUTES);
     }

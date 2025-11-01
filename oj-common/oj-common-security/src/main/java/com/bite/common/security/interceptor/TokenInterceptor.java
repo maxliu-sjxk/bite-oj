@@ -42,7 +42,9 @@ public class TokenInterceptor implements HandlerInterceptor {
         }
         Claims claims = tokenService.getClaims(token, secret);
         Long userId = tokenService.getUserId(claims);
+        String userKey = tokenService.getUserKey(claims);
         ThreadLocalUtils.set(Constants.USER_ID, userId);
+        ThreadLocalUtils.set(Constants.USER_KEY, userKey);
         //调用延长方法
         tokenService.extendExpire(claims);
         return true;
