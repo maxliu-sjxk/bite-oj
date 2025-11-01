@@ -5,6 +5,7 @@ import com.bite.common.core.controller.BaseController;
 import com.bite.common.core.domain.R;
 import com.bite.common.core.domain.vo.LoginUserVO;
 import com.bite.friend.domain.user.dto.UserDTO;
+import com.bite.friend.domain.user.vo.UserVO;
 import com.bite.friend.service.user.IUserService;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
@@ -36,6 +37,11 @@ public class UserController extends BaseController {
     @GetMapping("/info")
     public R<LoginUserVO> info(@RequestHeader(HttpConstants.AUTHENTICATION) String token) {
         return userService.info(token);
+    }
+
+    @GetMapping("/detail")
+    public R<UserVO> detail() {
+        return userService.detail();
     }
 
 

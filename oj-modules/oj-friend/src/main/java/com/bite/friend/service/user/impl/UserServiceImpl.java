@@ -12,12 +12,15 @@ import com.bite.common.core.domain.vo.LoginUserVO;
 import com.bite.common.core.enums.ResultCode;
 import com.bite.common.core.enums.UserIdentity;
 import com.bite.common.core.enums.UserStatus;
+import com.bite.common.core.utils.ThreadLocalUtils;
 import com.bite.common.message.service.Mail;
 import com.bite.common.redis.service.RedisService;
 import com.bite.common.security.exception.ServiceException;
 import com.bite.common.security.service.TokenService;
 import com.bite.friend.domain.user.User;
 import com.bite.friend.domain.user.dto.UserDTO;
+import com.bite.friend.domain.user.vo.UserVO;
+import com.bite.friend.manager.UserCacheManager;
 import com.bite.friend.mapper.user.UserMapper;
 import com.bite.friend.service.user.IUserService;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +48,9 @@ public class UserServiceImpl implements IUserService {
 
     @Autowired
     private TokenService tokenService;
+
+    @Autowired
+    private UserCacheManager userCacheManager;
 
     @Value("${captcha.send-limit:3}")
     private Integer sendLimit;
@@ -166,6 +172,19 @@ public class UserServiceImpl implements IUserService {
         loginUserVO.setNickName(loginUser.getNickName());
         loginUserVO.setHeadImage(loginUser.getHeadImage());
         return R.ok(loginUserVO);
+    }
+
+    @Override
+    public R<UserVO> detail() {
+        Long userId = ThreadLocalUtils.get(Constants.USER_ID, Long.class);
+        if (userId == null) {
+            throw new ServiceException(ResultCode.FAILED_USER_NOT_EXISTS);
+        }
+        UserVO userVO = userCacheManager.getUserCacheById(userId);
+        if (userVO == null) {
+            throw new ServiceException(ResultCode.FAILED_USER_NOT_EXISTS);
+        }
+        return R.ok(userVO);
     }
 
     private void checkCode(String email, String code) {

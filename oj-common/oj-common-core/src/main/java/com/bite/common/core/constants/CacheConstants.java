@@ -8,6 +8,8 @@ public class CacheConstants {
     //token有效期，单位：分钟
     public static final long EXP = 720;
 
+    public static final long USER_EXP = 10;
+
     //token有效期延长阈值，单位：分钟
     public static final long REFRESH_TIME = 180;
 
@@ -31,4 +33,6 @@ public class CacheConstants {
 
 
     public static final String USER_EXAM_LIST_KEY_PREFIX = "user:exam:list:";
+
+    public static final String USER_DETAIL_KEY_PREFIX = "user:detail:";
 }
