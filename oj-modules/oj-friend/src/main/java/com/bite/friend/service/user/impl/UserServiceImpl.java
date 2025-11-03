@@ -62,6 +62,9 @@ public class UserServiceImpl implements IUserService {
     @Value("${captcha.is-send:false}")
     private boolean isSend;
 
+    @Value("${file.oss.downloadUrl}")
+    private String downloadUrl;
+
 
     /**
      * 限制：
@@ -171,7 +174,10 @@ public class UserServiceImpl implements IUserService {
         }
         LoginUserVO loginUserVO = new LoginUserVO();
         loginUserVO.setNickName(loginUser.getNickName());
-        loginUserVO.setHeadImage(loginUser.getHeadImage());
+        //拼接完整的图片url
+        if (StrUtil.isNotEmpty(loginUser.getHeadImage())) {
+            loginUserVO.setHeadImage(downloadUrl + loginUser.getHeadImage());
+        }
         return R.ok(loginUserVO);
     }
 
@@ -185,19 +191,16 @@ public class UserServiceImpl implements IUserService {
         if (userVO == null) {
             throw new ServiceException(ResultCode.FAILED_USER_NOT_EXISTS);
         }
+        //拼接完整的图片url
+        if (StrUtil.isNotEmpty(userVO.getHeadImage())) {
+            userVO.setHeadImage(downloadUrl + userVO.getHeadImage());
+        }
         return R.ok(userVO);
     }
 
     @Override
     public int edit(UserUpdateDTO userUpdateDTO) {
-        Long userId = ThreadLocalUtils.get(Constants.USER_ID, Long.class);
-        if (userId == null) {
-            throw new ServiceException(ResultCode.FAILED_USER_NOT_EXISTS);
-        }
-        User user = userMapper.selectById(userId);
-        if (user == null) {
-            throw new ServiceException(ResultCode.FAILED_USER_NOT_EXISTS);
-        }
+        User user = getUser();
         user.setNickName(userUpdateDTO.getNickName());
         user.setSex(userUpdateDTO.getSex());
         user.setSchoolName(userUpdateDTO.getSchoolName());
@@ -206,6 +209,17 @@ public class UserServiceImpl implements IUserService {
         user.setEmail(userUpdateDTO.getEmail());
         user.setWechat(userUpdateDTO.getWechat());
         user.setIntroduce(userUpdateDTO.getIntroduce());
+        userCacheManager.refreshUserCache(user);
+        tokenService.refreshLoginUser(user.getNickName(), user.getHeadImage(),
+                ThreadLocalUtils.get(Constants.USER_KEY, String.class));
+        return userMapper.updateById(user);
+    }
+
+
+    @Override
+    public int updateHeadImage(String headImage) {
+        User user = getUser();
+        user.setHeadImage(headImage);
         userCacheManager.refreshUserCache(user);
         tokenService.refreshLoginUser(user.getNickName(), user.getHeadImage(),
                 ThreadLocalUtils.get(Constants.USER_KEY, String.class));
@@ -243,5 +257,17 @@ public class UserServiceImpl implements IUserService {
         content.append("若您未发起此操作，可能是他人误填您的邮箱，请忽略本邮件或及时检查账号安全。<br/>");
         content.append("感谢您对OJ系统的使用！");
         return content.toString();
+    }
+
+    private User getUser() {
+        Long userId = ThreadLocalUtils.get(Constants.USER_ID, Long.class);
+        if (userId == null) {
+            throw new ServiceException(ResultCode.FAILED_USER_NOT_EXISTS);
+        }
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new ServiceException(ResultCode.FAILED_USER_NOT_EXISTS);
+        }
+        return user;
     }
 }

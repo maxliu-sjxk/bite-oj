@@ -19,4 +19,6 @@ public interface IUserService {
     R<UserVO> detail();
 
     int edit(UserUpdateDTO userUpdateDTO);
+
+    int updateHeadImage(String headImage);
 }
