@@ -8,8 +8,10 @@ import com.bite.common.core.domain.TableDataInfo;
 import com.bite.friend.domain.question.Question;
 import com.bite.friend.domain.question.dto.QuestionQueryDTO;
 import com.bite.friend.domain.question.es.QuestionES;
+import com.bite.friend.domain.question.vo.QuestionDetailVO;
 import com.bite.friend.domain.question.vo.QuestionVO;
 import com.bite.friend.elasticsearch.QuestionRepository;
+import com.bite.friend.manager.QuestionCacheManager;
 import com.bite.friend.mapper.question.QuestionMapper;
 import com.bite.friend.service.question.IQuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,9 @@ public class QuestionServiceImpl implements IQuestionService {
     @Autowired
     private QuestionRepository questionRepository;
 
+    @Autowired
+    private QuestionCacheManager questionCacheManager;
+
 
     /**
      * 流程记录：
@@ -44,7 +49,7 @@ public class QuestionServiceImpl implements IQuestionService {
         long count = questionRepository.count();
         if (count <= 0) {
             //es未命中
-            if (!refreshES(questionQueryDTO)) {
+            if (!refreshES()) {
                 return TableDataInfo.empty();
             }
         }
@@ -78,12 +83,51 @@ public class QuestionServiceImpl implements IQuestionService {
         return TableDataInfo.success(questionVOList, total);
     }
 
+    @Override
+    public QuestionDetailVO detail(Long questionId) {
+        QuestionES questionES = questionRepository.findById(questionId).orElse(null);
+        QuestionDetailVO questionDetailVO = new QuestionDetailVO();
+        if (questionES != null) {
+            BeanUtil.copyProperties(questionES, questionDetailVO);
+            return questionDetailVO;
+        }
+        Question question = questionMapper.selectById(questionId);
+        if (question == null) {
+            return null;
+        }
+        refreshES();
+        BeanUtil.copyProperties(question, questionDetailVO);
+        return questionDetailVO;
+    }
+
+    /**
+     * 分析：需要维护一个题目列表，该列表顺序根据创建时间维护
+     * 走 Redis
+     * 1. 查缓存：
+     * - 缓存未命中，则查库并刷新缓存
+     * - 缓存命中，直接调用返回
+     *
+     * @param questionId
+     * @return 上一题的题目id
+     */
+    @Override
+    public String preQuestion(Long questionId) {
+        checkAndRefreshQuestionCache();
+        return questionCacheManager.preQuestion(questionId).toString();
+    }
+
+    @Override
+    public String nextQuestion(Long questionId) {
+        //查缓存
+        checkAndRefreshQuestionCache();
+        return questionCacheManager.nextQuestion(questionId).toString();
+    }
+
     /**
      * 查询数据库，将数据同步给ES
-     * @param questionQueryDTO
      * @return 刷新成功返回true；刷新失败返回false，方便后续处理，避免无效的es查询
      */
-    private boolean refreshES(QuestionQueryDTO questionQueryDTO) {
+    private boolean refreshES() {
         List<Question> questionList = questionMapper.selectList(new LambdaQueryWrapper<Question>());
         if (CollectionUtil.isEmpty(questionList)) {
             return false;
@@ -91,5 +135,14 @@ public class QuestionServiceImpl implements IQuestionService {
         List<QuestionES> questionESList = BeanUtil.copyToList(questionList, QuestionES.class);
         questionRepository.saveAll(questionESList);
         return true;
+    }
+
+    private void checkAndRefreshQuestionCache() {
+        //查缓存
+        Long listSize = questionCacheManager.getQuestionListSize();
+        if (listSize == null || listSize <= 0) {
+            //刷新缓存
+            questionCacheManager.refreshCache();
+        }
     }
 }

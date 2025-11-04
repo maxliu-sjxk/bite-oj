@@ -39,7 +39,10 @@ public enum ResultCode {
     FAILED_REPEATED_ENTER               (3301, "已报名，无需重复报名"),
 
     FAILED_FILE_UPLOAD                  (3401, "文件上传失败"),
-    FAILED_FILE_UPLOAD_TIMES_LIMIT      (3402, "当天上传文件次数已达上限");
+    FAILED_FILE_UPLOAD_TIMES_LIMIT      (3402, "当天上传文件次数已达上限"),
+
+    FAILED_ALREADY_FIRST_QUESTION         (3501, "当前已经是第一道题了哦"),
+    FAILED_ALREADY_LAST_QUESTION         (3501, "当前已经是最后一道题了哦");
 
 
 
