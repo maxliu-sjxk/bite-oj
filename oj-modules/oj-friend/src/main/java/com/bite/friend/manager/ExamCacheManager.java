@@ -5,22 +5,29 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bite.common.core.constants.CacheConstants;
 import com.bite.common.core.enums.ExamListType;
+import com.bite.common.core.enums.ResultCode;
 import com.bite.common.redis.service.RedisService;
+import com.bite.common.security.exception.ServiceException;
 import com.bite.friend.domain.exam.Exam;
+import com.bite.friend.domain.exam.ExamQuestion;
 import com.bite.friend.domain.exam.dto.ExamQueryDTO;
 import com.bite.friend.domain.exam.vo.ExamVO;
 import com.bite.friend.domain.user.UserExam;
 import com.bite.friend.mapper.exam.ExamMapper;
+import com.bite.friend.mapper.exam.ExamQuestionMapper;
 import com.bite.friend.mapper.user.UserExamMapper;
 import com.bite.friend.mapstruct.ExamVoToExamMapper;
 import com.github.pagehelper.PageHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class ExamCacheManager {
@@ -37,10 +44,17 @@ public class ExamCacheManager {
     @Autowired
     private UserExamMapper userExamMapper;
 
+    @Autowired
+    private ExamQuestionMapper examQuestionMapper;
+
 
     public Long getExamListSize(Integer examListType, Long userId) {
         String examListKey = getExamListKey(examListType, userId);
         return redisService.getListSize(examListKey);
+    }
+
+    public Long getExamQuestionListSize(Long examId) {
+        return redisService.getListSize(getExamQuestionListKey(examId));
     }
 
     private String getExamListKey(Integer examListType, Long userId) {
@@ -114,6 +128,76 @@ public class ExamCacheManager {
         return examVOList;
     }
 
+    public void cacheUserExamList(Long userId, Long examId) {
+        String userExamListKey = getUserExamListKey(userId);
+        redisService.leftPushForList(userExamListKey, examId);
+    }
+
+    public List<Long> getAllUserExamList(Long userId) {
+        String userExamListKey = getUserExamListKey(userId);
+        List<Long> userExamIdList  = redisService.getCacheListByRange(userExamListKey, 0, -1, Long.class);
+        //缓存未命中
+        if (CollectionUtil.isNotEmpty(userExamIdList)) {
+            return userExamIdList;
+        }
+        //查询数据库
+        List<UserExam> userExamList = userExamMapper.selectList(new LambdaQueryWrapper<UserExam>()
+                .eq(UserExam::getUserId, userId));
+        if (CollectionUtil.isEmpty(userExamList)) {
+            //数据库中无数据
+            return null;
+        }
+        //刷新缓存，refreshCache方法需要List<ExamVO>参数，而UserExam与ExamVO的属性差别过大，
+        // 并不能支撑转换，因此此处需要查询数据库（老师代码依旧是在refreshCache方法中统一再查数据库，而我的代码并没有统一
+        // 再查，因此本质上老师的代码也是额外查询一次，只不过位置不同，后续如果还需要大调整可以考虑重构为老师的写法）
+        List<ExamVO> examVOList = userExamMapper.selectUserExamList(userId);
+        //如果用户报名过任一竞赛，就刷新 user:exam:list:用户id 缓存
+        if (CollectionUtil.isNotEmpty(examVOList)) {
+            refreshCache(examVOList, ExamListType.USER_EXAM_LIST.getValue(), userId);
+        }
+        return userExamList.stream().map(UserExam::getExamId).toList();
+    }
+
+    public void refreshExamQuestionListCache(Long examId) {
+        List<ExamQuestion> examQuestionList = examQuestionMapper.selectList(new LambdaQueryWrapper<ExamQuestion>()
+                .select(ExamQuestion::getQuestionId)
+                .eq(ExamQuestion::getExamId, examId)
+                .orderByAsc(ExamQuestion::getQuestionOrder));
+        if (CollectionUtil.isEmpty(examQuestionList)) {
+            return;
+        }
+        String examQuestionListKey = getExamQuestionListKey(examId);
+        List<Long> examQuestionIdList = examQuestionList.stream().map(ExamQuestion::getQuestionId).toList();
+        redisService.rightPushAll(examQuestionListKey, examQuestionIdList);
+        //这里竞赛题目的获取高峰大概率在当天（答题/练习），隔天竞赛结束，用户练习的需求大概率减少，因此节省缓存
+        long seconds = ChronoUnit.SECONDS.between(LocalDateTime.now(),
+                LocalDateTime.now().plusDays(1).withHour(0).withMinute(0).withSecond(0).withNano(0));
+        redisService.expire(examQuestionListKey, seconds, TimeUnit.SECONDS);
+    }
+
+    public Long getFirstQuestion(Long examId) {
+        return redisService.indexForList(getExamQuestionListKey(examId), 0, Long.class);
+    }
+
+    public Long preQuestion(Long examId, Long questionId) {
+        String examQuestionListKey = getExamQuestionListKey(examId);
+        Long index = redisService.indexOfForList(examQuestionListKey, questionId);
+        if (index == 0) {
+            throw new ServiceException(ResultCode.FAILED_ALREADY_FIRST_QUESTION);
+        }
+        return redisService.indexForList(examQuestionListKey, index - 1, Long.class);
+    }
+
+    public Long nextQuestion(Long examId, Long questionId) {
+        String examQuestionListKey = getExamQuestionListKey(examId);
+        Long index = redisService.indexOfForList(examQuestionListKey, questionId);
+        Long lastIndex = getExamQuestionListSize(examId) - 1;
+        if (index == lastIndex) {
+            throw new ServiceException(ResultCode.FAILED_ALREADY_LAST_QUESTION);
+        }
+        return redisService.indexForList(examQuestionListKey, index + 1, Long.class);
+    }
+
     private List<ExamVO> getExamVOListFromDB(ExamQueryDTO examQueryDTO, Long userId) {
         PageHelper.startPage(examQueryDTO.getPageNum(), examQueryDTO.getPageSize());
         if (examQueryDTO.getType().equals(ExamListType.USER_EXAM_LIST.getValue())) {
@@ -139,37 +223,12 @@ public class ExamCacheManager {
         return examVOList;
     }
 
-    public void cacheUserExamList(Long userId, Long examId) {
-        String userExamListKey = getUserExamListKey(userId);
-        redisService.leftPushForList(userExamListKey, examId);
-    }
-
     private String getUserExamListKey(Long userId) {
         return CacheConstants.USER_EXAM_LIST_KEY_PREFIX + userId;
     }
 
-    public List<Long> getAllUserExamList(Long userId) {
-        String userExamListKey = getUserExamListKey(userId);
-        List<Long> userExamIdList  = redisService.getCacheListByRange(userExamListKey, 0, -1, Long.class);
-        //缓存未命中
-        if (CollectionUtil.isNotEmpty(userExamIdList)) {
-            return userExamIdList;
-        }
-        //查询数据库
-        List<UserExam> userExamList = userExamMapper.selectList(new LambdaQueryWrapper<UserExam>()
-                .eq(UserExam::getUserId, userId));
-        if (CollectionUtil.isEmpty(userExamList)) {
-            //数据库中无数据
-            return null;
-        }
-        //刷新缓存，refreshCache方法需要List<ExamVO>参数，而UserExam与ExamVO的属性差别过大，
-        // 并不能支撑转换，因此此处需要查询数据库（老师代码依旧是在refreshCache方法中统一再查数据库，而我的代码并没有统一
-        // 再查，因此本质上老师的代码也是额外查询一次，只不过位置不同，后续如果还需要大调整可以考虑重构为老师的写法）
-         List<ExamVO> examVOList = userExamMapper.selectUserExamList(userId);
-        //如果用户报名过任一竞赛，就刷新 user:exam:list:用户id 缓存
-        if (CollectionUtil.isNotEmpty(examVOList)) {
-            refreshCache(examVOList, ExamListType.USER_EXAM_LIST.getValue(), userId);
-        }
-        return userExamList.stream().map(UserExam::getExamId).toList();
+    private String getExamQuestionListKey(Long examId) {
+        return CacheConstants.EXAM_QUESTION_LIST_KEY_PREFIX + examId;
     }
+
 }

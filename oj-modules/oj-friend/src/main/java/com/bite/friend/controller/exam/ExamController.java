@@ -1,6 +1,7 @@
 package com.bite.friend.controller.exam;
 
 import com.bite.common.core.controller.BaseController;
+import com.bite.common.core.domain.R;
 import com.bite.common.core.domain.TableDataInfo;
 import com.bite.friend.domain.exam.dto.ExamQueryDTO;
 import com.bite.friend.service.exam.IExamService;
@@ -27,5 +28,19 @@ public class ExamController extends BaseController {
         return examService.redisList(examQueryDTO);
     }
 
+    @GetMapping("/getFirstQuestion")
+    public R<String> getFirstQuestion(Long examId) {
+        return R.ok(examService.getFirstQuestion(examId));
+    }
+
+    @GetMapping("/preQuestion")
+    public R<String> preQuestion(Long examId, Long questionId) {
+        return R.ok(examService.preQuestion(examId, questionId));
+    }
+
+    @GetMapping("/nextQuestion")
+    public R<String> nextQuestion(Long examId, Long questionId) {
+        return R.ok(examService.nextQuestion(examId, questionId));
+    }
 
 }

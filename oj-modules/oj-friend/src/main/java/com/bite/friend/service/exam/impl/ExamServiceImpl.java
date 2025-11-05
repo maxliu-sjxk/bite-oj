@@ -66,6 +66,25 @@ public class ExamServiceImpl implements IExamService {
         return TableDataInfo.success(examVOList, total);
     }
 
+    @Override
+    public String getFirstQuestion(Long examId) {
+        checkAndRefreshExamQuestionCache(examId);
+        //TODO 理论上发布的竞赛不会存在无题目的情况 考虑是否添加对于getFirstQuestion返回值的判空逻辑
+        return examCacheManager.getFirstQuestion(examId).toString();
+    }
+
+    @Override
+    public String preQuestion(Long examId, Long questionId) {
+        checkAndRefreshExamQuestionCache(examId);
+        return examCacheManager.preQuestion(examId, questionId).toString();
+    }
+
+    @Override
+    public String nextQuestion(Long examId, Long questionId) {
+        checkAndRefreshExamQuestionCache(examId);
+        return examCacheManager.nextQuestion(examId, questionId).toString();
+    }
+
     private void assembleExamVOList(List<ExamVO> examVOList) {
         //1. 拿到用户报名的竞赛列表（List<Long>）
         Long userId = ThreadLocalUtils.get(Constants.USER_ID, Long.class);
@@ -78,6 +97,13 @@ public class ExamServiceImpl implements IExamService {
             if (userExamIdList.contains(examVO.getExamId())) {
                 examVO.setEnter(true);
             }
+        }
+    }
+
+    private void checkAndRefreshExamQuestionCache(Long examId) {
+        Long listSize = examCacheManager.getExamQuestionListSize(examId);
+        if (listSize == null || listSize <= 0) {
+            examCacheManager.refreshExamQuestionListCache(examId);
         }
     }
 

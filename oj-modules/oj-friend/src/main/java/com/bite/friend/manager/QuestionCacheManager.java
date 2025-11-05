@@ -1,6 +1,7 @@
 package com.bite.friend.manager;
 
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bite.common.core.constants.CacheConstants;
 import com.bite.common.core.enums.ResultCode;
@@ -32,6 +33,9 @@ public class QuestionCacheManager {
         List<Question> questionList = questionMapper.selectList(new LambdaQueryWrapper<Question>()
                 .select(Question::getQuestionId)
                 .orderByDesc(Question::getCreateTime));
+        if (CollectionUtil.isEmpty(questionList)) {
+            return;
+        }
         List<Long> questionIdList = questionList.stream().map(Question::getQuestionId).toList();
         redisService.rightPushAll(CacheConstants.QUESTION_LIST_KEY, questionIdList);
     }
