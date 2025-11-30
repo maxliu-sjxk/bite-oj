@@ -29,6 +29,9 @@ public class ExamXxlJob {
     @Autowired
     private RedisService redisService;
 
+    /**
+     * 完赛竞赛移入历史竞赛
+     */
     @XxlJob("examListOrganizeHandler")
     public void examListOrganizeHandler() {
         log.info("*** examListOrganizeHandler 开始 ***");

@@ -9,6 +9,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <module>oj-modules</module>
         <module>oj-common</module>
         <module>oj-gateway</module>
+        <module>oj-api</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -26,6 +27,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <spring-cloud-alibaba.version>2022.0.0.0-RC2</spring-cloud-alibaba.version>
         <spring-cloud.version>2022.0.0</spring-cloud.version>
         <mybatis-plus.version>3.5.5</mybatis-plus.version>
+        <oj-api.version>1.0-SNAPSHOT</oj-api.version>
         <oj-common-core.version>1.0-SNAPSHOT</oj-common-core.version>
         <oj-common-swagger.version>1.0-SNAPSHOT</oj-common-swagger.version>
         <oj-common-security.version>1.0-SNAPSHOT</oj-common-security.version>

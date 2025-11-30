@@ -3,13 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>oj-modules</artifactId>
+        <artifactId>bite-oj</artifactId>
         <groupId>com.bite</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>oj-judge</artifactId>
+    <artifactId>oj-api</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -18,9 +18,13 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.bite</groupId>
-            <artifactId>oj-api</artifactId>
-            <version>${oj-api.version}</version>
+            <artifactId>oj-common-core</artifactId>
+            <version>${oj-common-core.version}</version>
         </dependency>
     </dependencies>
 
