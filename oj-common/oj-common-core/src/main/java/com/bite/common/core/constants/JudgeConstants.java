@@ -24,7 +24,8 @@ public class JudgeConstants {
 
     public static final String USER_CODE_JAVA_FILE_NAME = "Solution";
 
-    public static final String JAVA_ENV_IMAGE = "openjdk:8-jdk-alpine";
+//    public static final String JAVA_ENV_IMAGE = "openjdk:8-jdk-alpine";
+    public static final String JAVA_ENV_IMAGE = "openjdk:17.0.1";
 
     public static final String JAVA_CONTAINER_PREFIX = "/";
 
@@ -33,6 +34,7 @@ public class JudgeConstants {
     public static final String[] DOCKER_JAVAC_CMD = new String[] {"javac", "/usr/share/java/Solution.java"};
 
     public static final String[] DOCKER_JAVA_EXEC_CMD = new String[]{"java", "-cp", DOCKER_USER_CODE_DIR, USER_CODE_JAVA_FILE_NAME};
+
     //  java -cp  /usr/share/java  Solution 1 2
 
 }

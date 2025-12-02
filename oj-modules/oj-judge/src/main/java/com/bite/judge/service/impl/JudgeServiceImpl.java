@@ -52,7 +52,8 @@ public class JudgeServiceImpl implements IJudgeService {
     @Transactional(rollbackFor = Exception.class)
     public UserQuestionResultVO doJudgeJavaCode(JudgeSubmitDTO judgeSubmitDTO) {
         UserQuestionResultVO userQuestionResultVO;
-        SandBoxExecuteResult sandBoxExecuteResult = sandboxService.exeJavaCode(judgeSubmitDTO.getUserCode(),
+        SandBoxExecuteResult sandBoxExecuteResult = sandboxService.exeJavaCode(judgeSubmitDTO.getUserId(),
+                judgeSubmitDTO.getUserCode(),
                 judgeSubmitDTO.getInputList());
         if (sandBoxExecuteResult == null) {
             userQuestionResultVO = UserQuestionResultVO.fail(CodeRunStatus.UNKNOWN_FAILED.getMsg());
@@ -87,7 +88,6 @@ public class JudgeServiceImpl implements IJudgeService {
                     judgeSubmitDTO.getUserId(), judgeSubmitDTO.getQuestionId(), e);
             throw new RuntimeException("保存提交记录失败", e);
         }
-
     }
 
     private UserSubmit buildUserSubmit(JudgeSubmitDTO judgeSubmitDTO, UserQuestionResultVO userQuestionResultVO) {
@@ -96,6 +96,10 @@ public class JudgeServiceImpl implements IJudgeService {
         userSubmit.setPass(userQuestionResultVO.getPass());
         userSubmit.setScore(userQuestionResultVO.getScore());
         userSubmit.setExeMessage(userQuestionResultVO.getExeMessage());
+        //不能触发自动填充字段，因为在当前方法语境下，判题服务属于被调用方，仅C端服务(调用方)走TransmittableThreadLocal设置userId
+        //因此需要手动设置，否则触发not null报错
+        userSubmit.setCreateBy(judgeSubmitDTO.getUserId());
+        userSubmit.setUpdateBy(judgeSubmitDTO.getUserId());
         return userSubmit;
     }
 

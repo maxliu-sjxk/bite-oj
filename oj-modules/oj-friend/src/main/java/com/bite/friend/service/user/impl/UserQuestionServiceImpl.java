@@ -19,11 +19,13 @@ import com.bite.api.domain.vo.UserQuestionResultVO;
 import com.bite.friend.elasticsearch.QuestionRepository;
 import com.bite.friend.mapper.question.QuestionMapper;
 import com.bite.friend.service.user.IUserQuestionService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 public class UserQuestionServiceImpl implements IUserQuestionService {
 
@@ -77,6 +79,8 @@ public class UserQuestionServiceImpl implements IUserQuestionService {
         judgeSubmitDTO.setExamId(userSubmitDTO.getExamId());
         judgeSubmitDTO.setProgramType(userSubmitDTO.getProgramType());
         judgeSubmitDTO.setUserCode(codeConnect(userSubmitDTO.getUserCode(), questionES.getMainFunc()));
+        log.info("[questionES]: " + questionES.getMainFunc());
+        log.info("[questionES]: " + codeConnect(userSubmitDTO.getUserCode(), questionES.getMainFunc()));
         //将Json数组字符串转换为List
         List<QuestionCase> questionCaseList = JSONUtil.toList(questionES.getQuestionCase(), QuestionCase.class);
         judgeSubmitDTO.setInputList(questionCaseList.stream().map(QuestionCase::getInput).toList());
