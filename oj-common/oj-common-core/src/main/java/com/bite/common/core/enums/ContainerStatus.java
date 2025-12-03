@@ -14,5 +14,5 @@ public enum ContainerStatus {
     EXITED("exited");
 
 
-    private final String desc;
+    private String desc;
 }

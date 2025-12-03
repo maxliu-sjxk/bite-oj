@@ -23,4 +23,9 @@ public class UserQuestionController extends BaseController {
         return userQuestionService.submit(userSubmitDTO);
     }
 
+    @PostMapping("/rabbit/submit")
+    public R<Void> rabbitSubmit(@RequestBody UserSubmitDTO userSubmitDTO) {
+        return toR(userQuestionService.rabbitSubmit(userSubmitDTO));
+    }
+
 }

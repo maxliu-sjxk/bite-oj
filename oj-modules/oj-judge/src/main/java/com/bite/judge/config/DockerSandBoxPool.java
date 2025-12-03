@@ -58,7 +58,6 @@ public class DockerSandBoxPool {
     }
 
     public void initDockerPool() {
-        pullJavaEnvImage();
         for (int i = 0; i < poolSize; i++) {
             createContainer(JudgeConstants.JAVA_CONTAINER_NAME
                     + JudgeConstants.CONTAINER_NAME_SEPARATOR + i);
@@ -74,7 +73,7 @@ public class DockerSandBoxPool {
     }
 
     public void returnContainer(String containerId) {
-        containerQueue.offer(containerId);
+        containerQueue.add(containerId);
     }
 
 
@@ -114,6 +113,7 @@ public class DockerSandBoxPool {
             }
         }
 
+        pullJavaEnvImage();
         HostConfig hostConfig = buildHostConfig(containerName);
         CreateContainerCmd containerCmd = dockerClient
                 .createContainerCmd(sandboxImage)
@@ -128,7 +128,7 @@ public class DockerSandBoxPool {
         //启动容器
         dockerClient.startContainerCmd(containerId).exec();
         //记录容器id
-        containerQueue.offer(containerId);
+        containerQueue.add(containerId);
         //记录容器名称与容器id的对饮关系
         containerNameMap.put(containerId, containerName);
     }

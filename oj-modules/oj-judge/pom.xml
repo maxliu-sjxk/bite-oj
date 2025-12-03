@@ -36,6 +36,11 @@
             <artifactId>oj-common-mybatis</artifactId>
             <version>${oj-common-mybatis.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.bite</groupId>
+            <artifactId>oj-common-rabbitmq</artifactId>
+            <version>${oj-common-rabbitmq.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

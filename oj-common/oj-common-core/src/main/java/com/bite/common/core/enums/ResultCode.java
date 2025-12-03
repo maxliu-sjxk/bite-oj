@@ -44,7 +44,10 @@ public enum ResultCode {
     FAILED_ALREADY_FIRST_QUESTION       (3501, "当前已经是第一道题了哦"),
     FAILED_ALREADY_LAST_QUESTION        (3501, "当前已经是最后一道题了哦"),
 
-    FAILED_PROGRAM_TYPE_NOT_SUPPORT     (3601, "不支持的编程语言");
+    FAILED_PROGRAM_TYPE_NOT_SUPPORT     (3601, "不支持的编程语言"),
+
+    FAILED_RABBIT_PRODUCE     (3701, "消息生产");
+
 
 
 

@@ -8,4 +8,6 @@ public interface IUserQuestionService {
 
 
     R<UserQuestionResultVO> submit(UserSubmitDTO userSubmitDTO);
+
+    boolean rabbitSubmit(UserSubmitDTO userSubmitDTO);
 }

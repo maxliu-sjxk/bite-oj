@@ -18,6 +18,7 @@ import com.bite.friend.domain.user.dto.UserSubmitDTO;
 import com.bite.api.domain.vo.UserQuestionResultVO;
 import com.bite.friend.elasticsearch.QuestionRepository;
 import com.bite.friend.mapper.question.QuestionMapper;
+import com.bite.friend.rabbit.JudgeProducer;
 import com.bite.friend.service.user.IUserQuestionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,9 @@ public class UserQuestionServiceImpl implements IUserQuestionService {
     @Autowired
     private RemoteJudgeServiceApi remoteJudgeServiceApi;
 
+    @Autowired
+    private JudgeProducer judgeProducer;
+
 
     /**
      * 先判断编程语言是否支持，如果不支持则直接抛异常；如果支持，则继续执行
@@ -57,7 +61,21 @@ public class UserQuestionServiceImpl implements IUserQuestionService {
             //TODO Python
         }
         throw new ServiceException(ResultCode.FAILED_PROGRAM_TYPE_NOT_SUPPORT);
+    }
 
+    @Override
+    public boolean rabbitSubmit(UserSubmitDTO userSubmitDTO) {
+        Integer programType = userSubmitDTO.getProgramType();
+        if (ProgramType.JAVA.getValue().equals(programType)) {
+            JudgeSubmitDTO judgeSubmitDTO = assembleJudgeSubmitDTO4J(userSubmitDTO);
+            judgeProducer.produceMsg(judgeSubmitDTO);
+            return true;
+        } else if (ProgramType.CPP.getValue().equals(programType)) {
+            //TODO C++
+        } else if (ProgramType.PYTHON.getValue().equals(programType)) {
+            //TODO Python
+        }
+        throw new ServiceException(ResultCode.FAILED_PROGRAM_TYPE_NOT_SUPPORT);
     }
 
 

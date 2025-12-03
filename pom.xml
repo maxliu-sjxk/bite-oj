@@ -35,6 +35,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
         <oj-common-message.version>1.0-SNAPSHOT</oj-common-message.version>
         <oj-common-elasticsearch.version>1.0-SNAPSHOT</oj-common-elasticsearch.version>
         <oj-common-file.version>1.0-SNAPSHOT</oj-common-file.version>
+        <oj-common-rabbitmq.version>1.0-SNAPSHOT</oj-common-rabbitmq.version>
         <springdoc-openapi.version>2.2.0</springdoc-openapi.version>
         <fastjson.version>2.0.43</fastjson.version>
         <jjwt.version>0.9.1</jjwt.version>

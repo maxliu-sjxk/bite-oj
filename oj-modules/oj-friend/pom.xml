@@ -65,6 +65,11 @@
             <artifactId>oj-api</artifactId>
             <version>${oj-api.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.bite</groupId>
+            <artifactId>oj-common-rabbitmq</artifactId>
+            <version>${oj-common-rabbitmq.version}</version>
+        </dependency>
     </dependencies>
 
 
