@@ -12,6 +12,7 @@ import com.bite.judge.domain.SandBoxExecuteResult;
 import com.bite.judge.domain.UserSubmit;
 import com.bite.judge.mapper.UserSubmitMapper;
 import com.bite.judge.service.IJudgeService;
+import com.bite.judge.service.ISandboxPoolService;
 import com.bite.judge.service.ISandboxService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,9 @@ public class JudgeServiceImpl implements IJudgeService {
 
     @Resource(name = "sandboxServiceImpl")
     private ISandboxService sandboxService;
+
+    @Resource(name = "sandboxPoolServiceImpl")
+    private ISandboxPoolService sandboxPoolService;
 
     @Autowired
     private UserSubmitMapper userSubmitMapper;
@@ -52,7 +56,7 @@ public class JudgeServiceImpl implements IJudgeService {
     @Transactional(rollbackFor = Exception.class)
     public UserQuestionResultVO doJudgeJavaCode(JudgeSubmitDTO judgeSubmitDTO) {
         UserQuestionResultVO userQuestionResultVO;
-        SandBoxExecuteResult sandBoxExecuteResult = sandboxService.exeJavaCode(judgeSubmitDTO.getUserId(),
+        SandBoxExecuteResult sandBoxExecuteResult = sandboxPoolService.exeJavaCode(judgeSubmitDTO.getUserId(),
                 judgeSubmitDTO.getUserCode(),
                 judgeSubmitDTO.getInputList());
         if (sandBoxExecuteResult == null) {

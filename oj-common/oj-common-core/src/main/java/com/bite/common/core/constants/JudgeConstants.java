@@ -35,6 +35,8 @@ public class JudgeConstants {
 
     public static final String[] DOCKER_JAVA_EXEC_CMD = new String[]{"java", "-cp", DOCKER_USER_CODE_DIR, USER_CODE_JAVA_FILE_NAME};
 
+    public static final String CONTAINER_NAME_SEPARATOR = "-";
     //  java -cp  /usr/share/java  Solution 1 2
 
 }
+
