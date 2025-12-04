@@ -6,6 +6,7 @@ import com.bite.system.domain.user.User;
 import com.bite.system.domain.user.dto.UserQueryDTO;
 import com.bite.system.domain.user.dto.UserUpdateStatusDTO;
 import com.bite.system.domain.user.vo.UserVO;
+import com.bite.system.manager.UserCacheManager;
 import com.bite.system.mapper.user.UserMapper;
 import com.bite.system.service.user.IUserService;
 import com.github.pagehelper.PageHelper;
@@ -20,6 +21,9 @@ public class UserServiceImpl implements IUserService {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private UserCacheManager userCacheManager;
+
     @Override
     public List<UserVO> list(UserQueryDTO userQueryDTO) {
         PageHelper.startPage(userQueryDTO.getPageNum(), userQueryDTO.getPageSize());
@@ -33,6 +37,7 @@ public class UserServiceImpl implements IUserService {
             throw new ServiceException(ResultCode.FAILED_USER_NOT_EXISTS);
         }
         user.setStatus(userUpdateStatusDTO.getStatus());
+        userCacheManager.updateUserStatusCache(user.getUserId(), user.getStatus());
         return userMapper.updateById(user);
     }
 }

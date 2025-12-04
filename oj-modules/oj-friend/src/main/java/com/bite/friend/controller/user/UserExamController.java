@@ -4,6 +4,7 @@ import com.bite.common.core.constants.HttpConstants;
 import com.bite.common.core.controller.BaseController;
 import com.bite.common.core.domain.R;
 import com.bite.common.core.domain.TableDataInfo;
+import com.bite.friend.aspect.CheckUserStatus;
 import com.bite.friend.domain.exam.dto.ExamDTO;
 import com.bite.friend.domain.exam.dto.ExamQueryDTO;
 import com.bite.friend.service.user.IUserExamService;
@@ -18,6 +19,7 @@ public class UserExamController extends BaseController {
     private IUserExamService userExamService;
 
 
+    @CheckUserStatus
     @PostMapping("/enter")
     public R<Void> enter(@RequestBody ExamDTO examDTO) {
         return toR(userExamService.enter(examDTO.getExamId()));
