@@ -58,6 +58,7 @@ public class DockerSandBoxPool {
     }
 
     public void initDockerPool() {
+        pullJavaEnvImage();
         for (int i = 0; i < poolSize; i++) {
             createContainer(JudgeConstants.JAVA_CONTAINER_NAME
                     + JudgeConstants.CONTAINER_NAME_SEPARATOR + i);
@@ -113,7 +114,6 @@ public class DockerSandBoxPool {
             }
         }
 
-        pullJavaEnvImage();
         HostConfig hostConfig = buildHostConfig(containerName);
         CreateContainerCmd containerCmd = dockerClient
                 .createContainerCmd(sandboxImage)

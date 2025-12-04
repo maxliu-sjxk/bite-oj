@@ -1,6 +1,7 @@
 package com.bite.judge.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bite.api.domain.UserExeResult;
 import com.bite.api.domain.dto.JudgeSubmitDTO;
@@ -104,6 +105,7 @@ public class JudgeServiceImpl implements IJudgeService {
         //因此需要手动设置，否则触发not null报错
         userSubmit.setCreateBy(judgeSubmitDTO.getUserId());
         userSubmit.setUpdateBy(judgeSubmitDTO.getUserId());
+        userSubmit.setCaseJudgeRes(JSON.toJSONString(userQuestionResultVO.getUserExeResultList()));
         return userSubmit;
     }
 
@@ -130,7 +132,7 @@ public class JudgeServiceImpl implements IJudgeService {
             userExeResultList.add(userExeResult);
         }
         if (!isPass) {
-            return UserQuestionResultVO.fail(JudgeConstants.ERROR_ANSWER);
+            return UserQuestionResultVO.fail(userExeResultList, JudgeConstants.ERROR_ANSWER);
         }
         if (sandBoxExecuteResult.getUseMemory() > judgeSubmitDTO.getSpaceLimit()) {
             return UserQuestionResultVO.fail(JudgeConstants.OUT_OF_MEMORY);

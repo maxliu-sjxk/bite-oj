@@ -2,8 +2,11 @@ package com.bite.friend.service.user.impl;
 
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson2.JSON;
 import com.bite.api.apis.RemoteJudgeServiceApi;
+import com.bite.api.domain.UserExeResult;
 import com.bite.api.domain.dto.JudgeSubmitDTO;
 import com.bite.common.core.constants.Constants;
 import com.bite.common.core.domain.R;
@@ -14,10 +17,12 @@ import com.bite.common.security.exception.ServiceException;
 import com.bite.friend.domain.question.Question;
 import com.bite.friend.domain.question.QuestionCase;
 import com.bite.friend.domain.question.es.QuestionES;
+import com.bite.friend.domain.user.UserSubmit;
 import com.bite.friend.domain.user.dto.UserSubmitDTO;
 import com.bite.api.domain.vo.UserQuestionResultVO;
 import com.bite.friend.elasticsearch.QuestionRepository;
 import com.bite.friend.mapper.question.QuestionMapper;
+import com.bite.friend.mapper.user.UserSubmitMapper;
 import com.bite.friend.rabbit.JudgeProducer;
 import com.bite.friend.service.user.IUserQuestionService;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +46,9 @@ public class UserQuestionServiceImpl implements IUserQuestionService {
 
     @Autowired
     private JudgeProducer judgeProducer;
+
+    @Autowired
+    private UserSubmitMapper userSubmitMapper;
 
 
     /**
@@ -76,6 +84,28 @@ public class UserQuestionServiceImpl implements IUserQuestionService {
             //TODO Python
         }
         throw new ServiceException(ResultCode.FAILED_PROGRAM_TYPE_NOT_SUPPORT);
+    }
+
+
+    /**
+     * 流程：
+     * 直接查库，封装结果即可
+     * @param examId 竞赛id
+     * @param questionId 题目id
+     * @param currentTime 查询时时间
+     * @return UserQuestionResultVO
+     */
+    @Override
+    public UserQuestionResultVO exeResult(Long examId, Long questionId, String currentTime) {
+            Long userId = ThreadLocalUtils.get(Constants.USER_ID, Long.class);
+        UserSubmit userSubmit = userSubmitMapper.selectCurrentUserSubmit(userId, examId, questionId, currentTime);
+        if (userSubmit == null) {
+            return UserQuestionResultVO.judging();
+        } else {
+            List<UserExeResult> userExeResultList = StrUtil.isNotEmpty(userSubmit.getCaseJudgeRes()) ?
+                    JSON.parseArray(userSubmit.getCaseJudgeRes(), UserExeResult.class) : null;
+            return UserQuestionResultVO.custom(userSubmit.getPass(), userExeResultList, userSubmit.getExeMessage());
+        }
     }
 
 
