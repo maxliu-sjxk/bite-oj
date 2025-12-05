@@ -41,4 +41,9 @@ public class CacheConstants {
     public static final String QUESTION_LIST_KEY = "question:list";
 
     public static final String EXAM_QUESTION_LIST_KEY_PREFIX = "exam:question:list:";
+
+
+    public static final String USER_MESSAGE_LIST_KEY_PREFIX = "user:message:list:";
+    public static final String MESSAGE_DETAIL_KEY_PREFIX = "message:detail:";
+
 }

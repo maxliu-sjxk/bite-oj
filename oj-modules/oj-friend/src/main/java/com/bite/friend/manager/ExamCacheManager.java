@@ -214,7 +214,7 @@ public class ExamCacheManager {
             return null;
         }
         //构造ExamDetailKeyList
-        List<String> examDetailKeyList = examIdList.stream().map(examId -> getExamDetailKey(examId)).toList();
+        List<String> examDetailKeyList = examIdList.stream().map(this::getExamDetailKey).toList();
         List<ExamVO> examVOList = redisService.multiGet(examDetailKeyList, ExamVO.class);
         CollUtil.removeNull(examVOList);
         if (CollectionUtil.isEmpty(examVOList) || examVOList.size() != examIdList.size()) {
