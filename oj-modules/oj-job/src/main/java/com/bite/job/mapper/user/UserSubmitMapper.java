@@ -10,4 +10,6 @@ import java.util.Set;
 
 public interface UserSubmitMapper extends BaseMapper<UserSubmit> {
     List<UserScore> selectUserScoreList(Set<Long> examIdSet);
+
+    List<Long> selectHotQuestionList();
 }

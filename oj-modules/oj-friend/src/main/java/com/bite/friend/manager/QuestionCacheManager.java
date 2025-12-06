@@ -40,6 +40,13 @@ public class QuestionCacheManager {
         redisService.rightPushAll(CacheConstants.QUESTION_LIST_KEY, questionIdList);
     }
 
+    public void refreshHotQuestionList(List<Long> hotQuestionIdList) {
+        if (CollectionUtil.isEmpty(hotQuestionIdList)) {
+            return;
+        }
+        redisService.rightPushAll(CacheConstants.HOT_QUESTION_LIST_KEY, hotQuestionIdList);
+    }
+
     public Long preQuestion(Long questionId) {
         long index = redisService.indexOfForList(CacheConstants.QUESTION_LIST_KEY, questionId);
         if (index == 0) {
@@ -56,4 +63,14 @@ public class QuestionCacheManager {
         }
         return redisService.indexForList(CacheConstants.QUESTION_LIST_KEY, index + 1, Long.class);
     }
+
+    public Long getHotQuestionListSize() {
+        return redisService.getListSize(CacheConstants.HOT_QUESTION_LIST_KEY);
+    }
+
+    public List<Long> getHostQuestionListFromCache() {
+        return redisService.getCacheListByRange(CacheConstants.HOT_QUESTION_LIST_KEY,
+                CacheConstants.DEFAULT_START, CacheConstants.DEFAULT_END, Long.class);
+    }
+
 }

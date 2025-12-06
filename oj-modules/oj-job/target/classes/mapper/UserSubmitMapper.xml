@@ -21,4 +21,18 @@
         ORDER BY
             score DESC
     </select>
+
+    <select id="selectHotQuestionList" resultType="java.lang.Long">
+        SELECT
+            question_id,
+            count(question_id) as hot_count
+        FROM
+            tb_user_submit
+        WHERE
+            exam_id is null
+        GROUP BY
+            question_id
+        ORDER BY
+            hot_count DESC
+    </select>
 </mapper>

@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.bite.common.core.constants.Constants;
 import com.bite.common.core.domain.TableDataInfo;
 import com.bite.friend.domain.question.Question;
 import com.bite.friend.domain.question.dto.QuestionQueryDTO;
@@ -13,7 +14,9 @@ import com.bite.friend.domain.question.vo.QuestionVO;
 import com.bite.friend.elasticsearch.QuestionRepository;
 import com.bite.friend.manager.QuestionCacheManager;
 import com.bite.friend.mapper.question.QuestionMapper;
+import com.bite.friend.mapper.user.UserSubmitMapper;
 import com.bite.friend.service.question.IQuestionService;
+import com.github.pagehelper.PageHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -28,6 +32,9 @@ public class QuestionServiceImpl implements IQuestionService {
 
     @Autowired
     private QuestionMapper questionMapper;
+
+    @Autowired
+    private UserSubmitMapper userSubmitMapper;
 
     @Autowired
     private QuestionRepository questionRepository;
@@ -84,6 +91,20 @@ public class QuestionServiceImpl implements IQuestionService {
     }
 
     @Override
+    public List<QuestionVO> hotList() {
+        Long total = questionCacheManager.getHotQuestionListSize();
+        List<Long> hotQuestionIdList;
+        if (total == null || total <= 0) {
+            PageHelper.startPage(Constants.HOT_QUESTION_LIST_START, Constants.HOT_QUESTION_LIST_END);
+            hotQuestionIdList = userSubmitMapper.selectHotQuestionList();
+            questionCacheManager.refreshHotQuestionList(hotQuestionIdList);
+        } else {
+            hotQuestionIdList = questionCacheManager.getHostQuestionListFromCache();
+        }
+        return assembleQuestionVOList(hotQuestionIdList);
+    }
+
+    @Override
     public QuestionDetailVO detail(Long questionId) {
         QuestionES questionES = questionRepository.findById(questionId).orElse(null);
         QuestionDetailVO questionDetailVO = new QuestionDetailVO();
@@ -123,6 +144,7 @@ public class QuestionServiceImpl implements IQuestionService {
         return questionCacheManager.nextQuestion(questionId).toString();
     }
 
+
     /**
      * 查询数据库，将数据同步给ES
      * @return 刷新成功返回true；刷新失败返回false，方便后续处理，避免无效的es查询
@@ -144,5 +166,19 @@ public class QuestionServiceImpl implements IQuestionService {
             //刷新缓存
             questionCacheManager.refreshCache();
         }
+    }
+
+    private List<QuestionVO> assembleQuestionVOList(List<Long> hotQuestionIdList) {
+        List<QuestionVO> resultList = new ArrayList<>();
+        if (CollectionUtil.isEmpty(hotQuestionIdList)) {
+            return resultList;
+        }
+        for (Long questionId : hotQuestionIdList) {
+            QuestionVO questionVO = new QuestionVO();
+            QuestionDetailVO detail = detail(questionId);
+            questionVO.setTitle(detail.getTitle());
+            resultList.add(questionVO);
+        }
+        return resultList;
     }
 }

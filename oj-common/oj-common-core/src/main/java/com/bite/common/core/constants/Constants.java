@@ -30,4 +30,7 @@ public class Constants {
     public static final String UTF8 = "UTF-8";
 
     public static final Long SYSTEM_USER_ID = 1L;
+
+    public static final int HOT_QUESTION_LIST_START = 1;
+    public static final int HOT_QUESTION_LIST_END = 5;
 }
