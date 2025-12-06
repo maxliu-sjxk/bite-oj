@@ -6,9 +6,13 @@ import com.bite.common.core.constants.Constants;
 import com.bite.common.core.domain.TableDataInfo;
 import com.bite.common.core.utils.ThreadLocalUtils;
 import com.bite.friend.domain.exam.dto.ExamQueryDTO;
+import com.bite.friend.domain.exam.dto.ExamRankDTO;
+import com.bite.friend.domain.exam.vo.ExamRankVO;
 import com.bite.friend.domain.exam.vo.ExamVO;
 import com.bite.friend.manager.ExamCacheManager;
+import com.bite.friend.manager.UserCacheManager;
 import com.bite.friend.mapper.exam.ExamMapper;
+import com.bite.friend.mapper.user.UserExamMapper;
 import com.bite.friend.service.exam.IExamService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -25,6 +29,12 @@ public class ExamServiceImpl implements IExamService {
 
     @Autowired
     private ExamCacheManager examCacheManager;
+
+    @Autowired
+    private UserCacheManager userCacheManager;
+
+    @Autowired
+    private UserExamMapper userExamMapper;
 
 
     @Override
@@ -64,6 +74,35 @@ public class ExamServiceImpl implements IExamService {
         //需要查出用户报名的所有竞赛，然后遍历examVOList，判断其examId是否在用户报名的竞赛列表中
         assembleExamVOList(examVOList);
         return TableDataInfo.success(examVOList, total);
+    }
+
+    @Override
+    public TableDataInfo rankList(ExamRankDTO examRankDTO) {
+        //查询缓存中竞赛list的大小
+        Long total = examCacheManager.getExamRankListSize(examRankDTO.getExamId());
+        List<ExamRankVO> examRankVOList;
+        if (total == null || total <= 0L) {
+            //缓存未命中，直接查询数据库
+            PageHelper.startPage(examRankDTO.getPageNum(), examRankDTO.getPageSize());
+            examRankVOList = userExamMapper.selectExamRankList(examRankDTO.getExamId());
+            //刷新缓存
+            examCacheManager.refreshExamRankListCache(examRankDTO.getExamId());
+            total = new PageInfo<>(examRankVOList).getTotal();
+        } else {
+            //缓存命中，直接查询缓存
+            examRankVOList = examCacheManager.getExamRankVOListFromCache(examRankDTO);
+            total = examCacheManager.getExamRankListSize(examRankDTO.getExamId());
+        }
+        if (CollectionUtil.isEmpty(examRankVOList)) {
+            return TableDataInfo.empty();
+        }
+
+        //将examRankVOList中的nickName字段进行填充
+        for (ExamRankVO examRankVO : examRankVOList) {
+            Long userId = examRankVO.getUserId();
+            examRankVO.setNickName(userCacheManager.getUserCacheById(userId).getNickName());
+        }
+        return TableDataInfo.success(examRankVOList, total);
     }
 
     @Override

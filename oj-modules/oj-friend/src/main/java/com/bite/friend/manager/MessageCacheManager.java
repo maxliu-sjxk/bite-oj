@@ -30,7 +30,11 @@ public class MessageCacheManager {
         return redisService.getListSize(getUserMessageListKey(userId));
     }
 
-    public void refreshCache(List<MessageTextVO> messageTextVOList, Long userId) {
+    public void refreshCache(Long userId) {
+        List<MessageTextVO> messageTextVOList = messageTextMapper.selectUserMessageList(userId);
+        if (CollectionUtil.isEmpty(messageTextVOList)) {
+            return;
+        }
         List<Long> textIdList = new ArrayList<>();
         Map<String, MessageTextVO> messageTextVOMap = new HashMap<>();
         for (MessageTextVO messageTextVO : messageTextVOList) {
@@ -38,6 +42,7 @@ public class MessageCacheManager {
             textIdList.add(textId);
             messageTextVOMap.put(getMessageDetailKey(textId), messageTextVO);
         }
+        redisService.deleteObject(getUserMessageListKey(userId));
         redisService.rightPushAll(getUserMessageListKey(userId), textIdList);
         redisService.multiSet(messageTextVOMap);
     }
@@ -49,7 +54,7 @@ public class MessageCacheManager {
         List<MessageTextVO> messageTextVOList = assembleMessageTextVOList(textIdList);
         if (CollectionUtil.isEmpty(messageTextVOList)) {
             messageTextVOList = getMessageVOListFromDB(pageQueryDTO, userId);
-            refreshCache(messageTextVOList, userId);
+            refreshCache(userId);
         }
         return messageTextVOList;
     }

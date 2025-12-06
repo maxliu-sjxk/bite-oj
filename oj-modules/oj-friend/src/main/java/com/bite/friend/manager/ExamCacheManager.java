@@ -1,5 +1,6 @@
 package com.bite.friend.manager;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -10,8 +11,12 @@ import com.bite.common.redis.service.RedisService;
 import com.bite.common.security.exception.ServiceException;
 import com.bite.friend.domain.exam.Exam;
 import com.bite.friend.domain.exam.ExamQuestion;
+import com.bite.friend.domain.exam.ExamRankInfo;
 import com.bite.friend.domain.exam.dto.ExamQueryDTO;
+import com.bite.friend.domain.exam.dto.ExamRankDTO;
+import com.bite.friend.domain.exam.vo.ExamRankVO;
 import com.bite.friend.domain.exam.vo.ExamVO;
+import com.bite.friend.domain.message.vo.MessageTextVO;
 import com.bite.friend.domain.user.UserExam;
 import com.bite.friend.mapper.exam.ExamMapper;
 import com.bite.friend.mapper.exam.ExamQuestionMapper;
@@ -57,6 +62,10 @@ public class ExamCacheManager {
         return redisService.getListSize(getExamQuestionListKey(examId));
     }
 
+    public Long getExamRankListSize(Long examId) {
+        return redisService.getListSize(getExamRankListKey(examId));
+    }
+
     private String getExamListKey(Integer examListType, Long userId) {
         if (ExamListType.EXAM_UNFINISHED_LIST.getValue().equals(examListType)) {
             return CacheConstants.EXAM_UNFINISHED_LIST_KEY;
@@ -77,11 +86,32 @@ public class ExamCacheManager {
      *
      * 遗留问题：
      * 是否需要在此再查询数据库
+     * TODO 有，因为第一次是分页查询，第二次不是分页查询，一次性刷新一次缓存
      * 有必要将examVOList转换为examList吗
      *
      * 目前实现：将service的数据库查询结果直接缓存
      */
     public void refreshCache(List<ExamVO> examVOList, Integer examListType, Long userId) {
+//
+//        List<Exam> examList = new ArrayList<>();
+//        if (ExamListType.EXAM_UN_FINISH_LIST.getValue().equals(examListType)) {
+//            //查询未完赛的竞赛列表
+//            examList = examMapper.selectList(new LambdaQueryWrapper<Exam>()
+//                    .select(Exam::getExamId, Exam::getTitle, Exam::getStartTime, Exam::getEndTime)
+//                    .gt(Exam::getEndTime, LocalDateTime.now())
+//                    .eq(Exam::getStatus, Constants.TRUE)
+//                    .orderByDesc(Exam::getCreateTime));
+//        } else if (ExamListType.EXAM_HISTORY_LIST.getValue().equals(examListType)) {
+//            //查询历史竞赛
+//            examList = examMapper.selectList(new LambdaQueryWrapper<Exam>()
+//                    .select(Exam::getExamId, Exam::getTitle, Exam::getStartTime, Exam::getEndTime)
+//                    .le(Exam::getEndTime, LocalDateTime.now())
+//                    .eq(Exam::getStatus, Constants.TRUE)
+//                    .orderByDesc(Exam::getCreateTime));
+//        } else if (ExamListType.USER_EXAM_LIST.getValue().equals(examListType)) {
+//            List<ExamVO> examVOList = userExamMapper.selectUserExamList(userId);
+//            examList = BeanUtil.copyToList(examVOList, Exam.class);
+//        }
         if (CollectionUtil.isEmpty(examVOList)) {
             return;
         }
@@ -128,6 +158,22 @@ public class ExamCacheManager {
         return examVOList;
     }
 
+    public List<ExamRankVO> getExamRankVOListFromCache(ExamRankDTO examRankDTO) {
+        int start = (examRankDTO.getPageNum() - 1) * examRankDTO.getPageSize();
+        int end = start + examRankDTO.getPageSize() - 1;
+        String examRankListKey = getExamRankListKey(examRankDTO.getExamId());
+        List<ExamRankVO> examRankVOList;
+        List<ExamRankInfo> examRankInfoList = redisService.getCacheListByRange(examRankListKey, start, end,
+                ExamRankInfo.class);
+        if (CollectionUtil.isEmpty(examRankInfoList)) {
+            examRankVOList = getExamRankVOListFromDB(examRankDTO);
+            refreshExamRankListCache(examRankDTO.getExamId());
+        } else {
+            examRankVOList = BeanUtil.copyToList(examRankInfoList, ExamRankVO.class);
+        }
+        return examRankVOList;
+    }
+
     public void cacheUserExamList(Long userId, Long examId) {
         String userExamListKey = getUserExamListKey(userId);
         redisService.leftPushForList(userExamListKey, examId);
@@ -168,11 +214,31 @@ public class ExamCacheManager {
         }
         String examQuestionListKey = getExamQuestionListKey(examId);
         List<Long> examQuestionIdList = examQuestionList.stream().map(ExamQuestion::getQuestionId).toList();
+        //TODO 删除 redisService.deleteObject(getExamListKey(examListType, userId));
         redisService.rightPushAll(examQuestionListKey, examQuestionIdList);
         //这里竞赛题目的获取高峰大概率在当天（答题/练习），隔天竞赛结束，用户练习的需求大概率减少，因此节省缓存
         long seconds = ChronoUnit.SECONDS.between(LocalDateTime.now(),
                 LocalDateTime.now().plusDays(1).withHour(0).withMinute(0).withSecond(0).withNano(0));
         redisService.expire(examQuestionListKey, seconds, TimeUnit.SECONDS);
+    }
+
+    /**
+     * 此方法一开始可以直接不分页查询一次数据库，将更多的数据写入缓存，但是，如果缓存只是部分残缺而将数据全部写入缓存，
+     * 数据就可能重复。正常情况下，对于该缓存的刷新都是全量的，所以不会出现问题
+     *
+     * 如果缓存刷新部分数据，就可能出现缓存数据错误问题，具体来说：
+     * 原来排名靠后的一页数据可能就会因为前端先到该页而将这部分数据放在缓存list靠前的位置，造成顺序混乱问题，因此：
+     * 这里还是全量查询刷新比价好；
+     * @param examId
+     */
+    public void refreshExamRankListCache(Long examId) {
+        List<ExamRankVO> examRankVOList = userExamMapper.selectExamRankList(examId);
+        if (CollectionUtil.isEmpty(examRankVOList)) {
+            return;
+        }
+        List<ExamRankInfo> examRankInfoList = BeanUtil.copyToList(examRankVOList, ExamRankInfo.class);
+        redisService.deleteObject(getExamRankListKey(examId));
+        redisService.rightPushAll(getExamRankListKey(examId), examRankInfoList);
     }
 
     public Long getFirstQuestion(Long examId) {
@@ -209,6 +275,11 @@ public class ExamCacheManager {
         }
     }
 
+    private List<ExamRankVO> getExamRankVOListFromDB(ExamRankDTO examRankDTO) {
+        PageHelper.startPage(examRankDTO.getPageNum(), examRankDTO.getPageSize());
+        return userExamMapper.selectExamRankList(examRankDTO.getExamId());
+    }
+
     private List<ExamVO> assembleExamVOList(List<Long> examIdList) {
         if (CollectionUtil.isEmpty(examIdList)) {
             return null;
@@ -231,4 +302,7 @@ public class ExamCacheManager {
         return CacheConstants.EXAM_QUESTION_LIST_KEY_PREFIX + examId;
     }
 
+    private String getExamRankListKey(Long examId) {
+        return CacheConstants.EXAM_RANK_LIST_KEY_PREFIX + examId;
+    }
 }

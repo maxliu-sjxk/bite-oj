@@ -14,6 +14,4 @@ public class UserScore {
     private int score;
 
     private int examRank;
-
-
 }

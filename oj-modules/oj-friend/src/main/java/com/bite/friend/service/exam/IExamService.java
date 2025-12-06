@@ -2,6 +2,7 @@ package com.bite.friend.service.exam;
 
 import com.bite.common.core.domain.TableDataInfo;
 import com.bite.friend.domain.exam.dto.ExamQueryDTO;
+import com.bite.friend.domain.exam.dto.ExamRankDTO;
 import com.bite.friend.domain.exam.vo.ExamVO;
 
 import java.util.List;
@@ -17,4 +18,6 @@ public interface IExamService {
     String preQuestion(Long examId, Long questionId);
 
     String nextQuestion(Long examId, Long questionId);
+
+    TableDataInfo rankList(ExamRankDTO examRankDTO);
 }

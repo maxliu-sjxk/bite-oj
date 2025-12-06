@@ -37,7 +37,7 @@ public class UserMessageServiceImpl implements IUserMessageService {
             PageHelper.startPage(pageQueryDTO.getPageNum(), pageQueryDTO.getPageSize());
             messageTextVOList = messageTextMapper.selectUserMessageList(userId);
             //刷新缓存
-            messageCacheManager.refreshCache(messageTextVOList, userId);
+            messageCacheManager.refreshCache(userId);
             total = new PageInfo<>(messageTextVOList).getTotal();
         } else {
             //缓存命中，直接查询缓存

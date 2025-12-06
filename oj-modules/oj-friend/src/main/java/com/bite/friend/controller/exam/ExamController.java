@@ -4,6 +4,7 @@ import com.bite.common.core.controller.BaseController;
 import com.bite.common.core.domain.R;
 import com.bite.common.core.domain.TableDataInfo;
 import com.bite.friend.domain.exam.dto.ExamQueryDTO;
+import com.bite.friend.domain.exam.dto.ExamRankDTO;
 import com.bite.friend.service.exam.IExamService;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,6 +42,11 @@ public class ExamController extends BaseController {
     @GetMapping("/nextQuestion")
     public R<String> nextQuestion(Long examId, Long questionId) {
         return R.ok(examService.nextQuestion(examId, questionId));
+    }
+
+    @GetMapping("/rank/list")
+    public TableDataInfo rankList(ExamRankDTO examRankDTO) {
+        return examService.rankList(examRankDTO);
     }
 
 }

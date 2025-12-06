@@ -8,11 +8,13 @@ import com.bite.common.core.constants.CacheConstants;
 import com.bite.common.core.constants.Constants;
 import com.bite.common.redis.service.RedisService;
 import com.bite.job.domain.exam.Exam;
+import com.bite.job.domain.exam.ExamRankInfo;
 import com.bite.job.domain.message.Message;
 import com.bite.job.domain.message.MessageText;
 import com.bite.job.domain.message.vo.MessageTextVO;
 import com.bite.job.domain.user.UserScore;
 import com.bite.job.mapper.exam.ExamMapper;
+import com.bite.job.mapper.user.UserExamMapper;
 import com.bite.job.mapper.user.UserSubmitMapper;
 import com.bite.job.service.IMessageService;
 import com.bite.job.service.IMessageTextService;
@@ -44,6 +46,9 @@ public class ExamXxlJob {
 
     @Resource(name = "messageServiceImpl")
     private IMessageService messageService;
+
+    @Autowired
+    private UserExamMapper userExamMapper;
 
     /**
      * 完赛竞赛移入历史竞赛
@@ -106,7 +111,7 @@ public class ExamXxlJob {
             int totalUser = userScoreList.size();
             int examRank = 1;
             for (UserScore userScore : userScoreList) {
-//                userScore.setExamRank(examRank);
+                userScore.setExamRank(examRank);
                 MessageText messageText = MessageText.build(buildMessageTitle(exam.getTitle()),
                         buildMessageContent(exam.getTitle(), totalUser, examRank));
                 messageText.setCreateBy(Constants.SYSTEM_USER_ID);
@@ -117,7 +122,9 @@ public class ExamXxlJob {
                 messageList.add(message);
                 examRank++;
             }
-            //TODO
+            userExamMapper.updateUserScoreAndRank(userScoreList);
+            List<ExamRankInfo> examRankInfoList = BeanUtil.copyToList(userScoreList, ExamRankInfo.class);
+            redisService.rightPushAll(getExamRankListKey(examId), examRankInfoList);
         }
         messageTextService.batchInsert(messageTextList);
         //循环内部实现：redis批量插入的数据 + 欲插入数据库的Message数据的textId字段填充
@@ -150,7 +157,7 @@ public class ExamXxlJob {
     }
 
     private String buildMessageContent(String examTitle, int totalUser, int examRank) {
-        return "您所参与的竞赛：【" + examTitle + "】已结束，请查看结果。\n" +
+        return "您所参与的竞赛：【" + examTitle + "】已结束。" +
                 "本次竞赛共有" + totalUser + "位用户参与，您的排名为：" + examRank + "位。";
     }
 
@@ -176,12 +183,17 @@ public class ExamXxlJob {
         return CacheConstants.EXAM_DETAIL_KEY_PREFIX + examId;
     }
 
-    public String getUserMessageListKey(Long userId) {
+    private String getUserMessageListKey(Long userId) {
         return CacheConstants.USER_MESSAGE_LIST_KEY_PREFIX + userId;
     }
 
-    public String getMessageDetailKey(Long textId) {
+    private String getMessageDetailKey(Long textId) {
         return CacheConstants.MESSAGE_DETAIL_KEY_PREFIX + textId;
     }
+
+    private String getExamRankListKey(Long examId) {
+        return CacheConstants.EXAM_RANK_LIST_KEY_PREFIX + examId;
+    }
+
 
 }

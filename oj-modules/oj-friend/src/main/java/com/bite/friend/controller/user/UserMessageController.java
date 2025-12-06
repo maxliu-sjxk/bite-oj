@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/message")
+@RequestMapping("/user/message")
 public class UserMessageController extends BaseController {
 
     @Resource(name = "userMessageServiceImpl")
